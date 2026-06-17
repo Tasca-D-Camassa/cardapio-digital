@@ -3,650 +3,609 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>Cardápio Digital - Tasca D' Camassa</title>
+    <title>Cardápio Digital - Churrascaria Raquel</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        /* ===== ESTILOS COMPLETOS (IGUAIS À VERSÃO LOCAL APROVADA) ===== */
-        * { margin:0; padding:0; box-sizing:border-box; font-family:'Inter',sans-serif; }
-        body { background: linear-gradient(145deg, #fefaf5 0%, #fff5e8 100%); color:#1e1e2a; scroll-behavior:smooth; }
-        .container { max-width:1400px; margin:0 auto; padding:2rem 1.5rem; }
-        .card { background:rgba(255,255,255,0.9); backdrop-filter:blur(4px); border-radius:36px; padding:1.8rem; margin-bottom:2rem; box-shadow:0 15px 35px -12px rgba(0,0,0,0.1); }
-        h2 { font-size:1.8rem; margin-bottom:1.5rem; background:linear-gradient(135deg,#c47b2e,#a05e1f); background-clip:text; -webkit-background-clip:text; color:transparent; border-left:6px solid #c47b2e; padding-left:1rem; }
-        button { background:linear-gradient(135deg,#c47b2e,#a05e1f); color:white; border:none; padding:0.7rem 1.6rem; border-radius:40px; font-weight:600; cursor:pointer; transition:0.2s; }
-        button:hover { transform:translateY(-2px); box-shadow:0 8px 20px rgba(196,123,46,0.3); }
-        .btn-outline { background:white; border:1.5px solid #c47b2e; color:#c47b2e; box-shadow:none; }
-        input, textarea, select { padding:0.8rem 1rem; border:1px solid #e2e8f0; border-radius:28px; width:100%; font-size:0.95rem; background:white; }
-        .restaurant-header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1.5rem; margin-bottom: 2rem; }
-        .logo-area { flex-shrink: 0; width: 130px; height: 130px; }
-        .logo-img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; background: white; box-shadow: 0 15px 30px rgba(0,0,0,0.1); padding: 5px; }
+        :root {
+            --bg-color: #FAF6F0; /* Fundo creme das imagens */
+            --primary-color: #C17225; /* Laranja/Castanho principal */
+            --dark-color: #2F323A; /* Botão Admin escuro */
+            --text-color: #333333;
+            --card-bg: #F2EBE1; /* Fundo das áreas de destaque */
+        }
+        
+        * { margin:0; padding:0; box-sizing:border-box; font-family:'Inter', sans-serif; }
+        body { background: var(--bg-color); color: var(--text-color); min-height: 100vh; display: flex; flex-direction: column; }
+        .container { max-width: 1300px; margin: 0 auto; padding: 2rem 1.5rem; flex: 1; width: 100%; }
+        
+        h2 { font-size: 1.6rem; color: var(--primary-color); margin-bottom: 1.5rem; display: flex; align-items: center; gap: 10px; }
+        
+        input, textarea, select { width: 100%; padding: 0.8rem 1.2rem; border: 1px solid #ddd; border-radius: 30px; font-size: 1rem; margin-bottom: 15px; outline: none; }
+        input:focus, select:focus { border-color: var(--primary-color); }
+        
+        button { background: var(--primary-color); color: white; border: none; padding: 0.8rem 1.5rem; border-radius: 30px; font-weight: 600; cursor: pointer; transition: 0.3s; }
+        button:hover { filter: brightness(1.1); transform: translateY(-2px); }
+        .btn-outline { background: transparent; border: 2px solid var(--primary-color); color: var(--primary-color); }
+        .btn-outline:hover { background: var(--primary-color); color: white; }
+
+        /* HEADER CLIENTE */
+        .restaurant-header { display: flex; align-items: center; gap: 2rem; margin-bottom: 2rem; }
+        .logo-area { width: 120px; height: 120px; flex-shrink: 0; }
+        .logo-img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; box-shadow: 0 4px 15px rgba(0,0,0,0.1); border: 4px solid white; background: #000; }
         .company-info-central { flex: 1; text-align: center; }
-        .company-info-central h1 { font-size: 2rem; background: linear-gradient(135deg,#c47b2e,#a05e1f); background-clip:text; -webkit-background-clip:text; color:transparent; margin-bottom:0.5rem; }
-        .contact-info { display: flex; justify-content: center; gap: 1.5rem; flex-wrap: wrap; background: rgba(255,255,245,0.7); backdrop-filter: blur(8px); padding: 0.5rem 1.5rem; border-radius: 60px; width: fit-content; margin: 0 auto; }
-        .contact-info span i { color: #c47b2e; margin-right: 0.4rem; }
-        .search-bar { display: flex; justify-content: center; margin-bottom: 2rem; }
-        .search-bar input { max-width: 500px; width: 100%; padding: 0.9rem 1.5rem; border-radius: 60px; font-size: 1rem; }
-        .carousel-parallel { display: flex; flex-wrap: wrap; gap: 1.5rem; margin-bottom: 2rem; }
-        .carousel-box { flex: 1; min-width: 280px; background: rgba(255,250,240,0.8); border-radius: 40px; padding: 1.2rem; box-shadow: 0 12px 28px rgba(0,0,0,0.08); }
-        .carousel-box h3 { text-align: center; margin-bottom: 1rem; font-size: 1.5rem; font-weight: 700; color: #c47b2e; }
-        .carousel { position: relative; display: flex; align-items: center; }
-        .carousel-inner { overflow: hidden; width: 100%; border-radius: 28px; background: #e6dbcf; }
-        .carousel-slide { display: flex; transition: transform 0.5s cubic-bezier(0.2,0.9,0.4,1.1); }
-        .carousel-item { min-width: 100%; padding: 0.5rem; text-align: center; }
-        .carousel-img { width: 100%; height: 260px; object-fit: contain; background: #f8f2ea; border-radius: 24px; }
-        .carousel-caption { margin-top: 0.5rem; font-weight: 600; color: #4a3727; }
-        .carousel-btn { background: #c47b2e; width: 42px; height: 42px; border-radius: 50%; display: flex; align-items: center; justify-content: center; position: absolute; top: 50%; transform: translateY(-50%); cursor: pointer; z-index: 2; color: white; }
-        .carousel-btn-left { left: 8px; }
-        .carousel-btn-right { right: 8px; }
-        .dishes-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px,1fr)); gap: 2rem; margin-top: 1.5rem; }
-        .dish-card { background: white; border-radius: 32px; overflow: hidden; cursor: pointer; transition: all 0.35s; box-shadow: 0 10px 25px -8px rgba(0,0,0,0.06); position: relative; }
-        .dish-card:hover { transform: translateY(-10px); box-shadow: 0 25px 40px -12px rgba(0,0,0,0.2); }
-        .featured-badge { position: absolute; top: 12px; right: 12px; background: linear-gradient(135deg,#c47b2e,#a05e1f); color: white; padding: 0.2rem 1rem; border-radius: 40px; font-size: 0.7rem; font-weight: bold; z-index: 2; }
-        .dish-img-container { width: 100%; height: 200px; background: #f8f3ed; display: flex; align-items: center; justify-content: center; overflow: hidden; }
-        .dish-img-container img { max-width: 100%; max-height: 100%; object-fit: contain; }
-        .dish-card-content { padding: 1.2rem; }
-        .dish-card-content h3 { font-size: 1.3rem; margin-bottom: 0.5rem; }
-        .price { font-weight: 800; font-size: 1.4rem; background: linear-gradient(135deg,#c47b2e,#b46a22); background-clip:text; -webkit-background-clip:text; color:transparent; margin:0.5rem 0; }
-        .card-actions { display: flex; gap: 0.8rem; margin-top: 1rem; }
-        .cart-floating { position: fixed; bottom: 25px; right: 25px; background: linear-gradient(135deg,#c47b2e,#a05e1f); width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.8rem; cursor: pointer; z-index: 200; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
-        .cart-count { background: #ffc107; color: #1f2937; border-radius: 30px; font-size: 0.8rem; font-weight: bold; position: absolute; top: -5px; right: -5px; padding: 0.2rem 0.5rem; }
-        .modal { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); backdrop-filter:blur(8px); justify-content:center; align-items:center; z-index:1000; }
-        .modal-content { background:white; max-width:550px; width:90%; border-radius:48px; padding:2rem; max-height:85vh; overflow-y:auto; }
-        .admin-tabs { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1.5rem; border-bottom: 2px solid #e0d6cc; }
-        .admin-tab { padding: 0.6rem 1.2rem; background: transparent; color: #c47b2e; box-shadow: none; border-radius: 30px; font-weight: 600; cursor: pointer; }
-        .admin-tab.active { background: #c47b2e; color: white; }
-        .tab-content { display: none; }
+        .company-info-central h1 { font-size: 2.2rem; color: var(--primary-color); margin-bottom: 0.5rem; font-weight: 800; }
+        .contact-info { display: flex; justify-content: center; gap: 1.5rem; font-size: 0.95rem; font-weight: 600; color: #555; }
+        .contact-info i { color: var(--primary-color); }
+
+        .search-container { text-align: center; margin-bottom: 3rem; }
+        .search-container input { max-width: 600px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+
+        /* CARROSSÉIS (Igual à Imagem 1) */
+        .carousels-wrapper { display: flex; gap: 2rem; margin-bottom: 3rem; flex-wrap: wrap; }
+        .carousel-section { flex: 1; min-width: 320px; background: var(--card-bg); border-radius: 20px; padding: 2rem; text-align: center; }
+        .carousel-section h2 { justify-content: center; font-size: 1.4rem; }
+        .carousel-container { position: relative; width: 100%; overflow: hidden; border-radius: 15px; margin-top: 1rem; }
+        .carousel-track { display: flex; transition: transform 0.5s ease-in-out; }
+        .carousel-slide { min-width: 100%; height: 280px; position: relative; }
+        .carousel-slide img { width: 100%; height: 100%; object-fit: cover; border-radius: 15px; }
+        .carousel-caption { position: absolute; bottom: 0; left: 0; width: 100%; background: rgba(0,0,0,0.6); color: white; padding: 10px; font-weight: bold; border-bottom-left-radius: 15px; border-bottom-right-radius: 15px; }
+        .nav-btn { position: absolute; top: 50%; transform: translateY(-50%); background: var(--primary-color); color: white; border: none; width: 40px; height: 40px; border-radius: 50%; font-size: 1.2rem; cursor: pointer; z-index: 10; display: flex; justify-content: center; align-items: center; box-shadow: 0 4px 8px rgba(0,0,0,0.2); }
+        .nav-btn:hover { background: #a6611e; }
+        .nav-left { left: 10px; }
+        .nav-right { right: 10px; }
+
+        /* GRELHA PRODUTOS */
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 2rem; margin-bottom: 3rem; }
+        .card { background: white; border-radius: 20px; overflow: hidden; box-shadow: 0 5px 15px rgba(0,0,0,0.05); transition: 0.3s; display: flex; flex-direction: column; }
+        .card:hover { transform: translateY(-5px); box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        .card-img { width: 100%; height: 200px; object-fit: cover; }
+        .card-body { padding: 1.5rem; flex: 1; display: flex; flex-direction: column; }
+        .card-title { font-size: 1.2rem; font-weight: 700; margin-bottom: 0.5rem; }
+        .card-price { color: var(--primary-color); font-size: 1.4rem; font-weight: 800; margin: auto 0 1rem 0; }
+
+        /* BOTÕES FLUTUANTES (Imagens 1 e 3) */
+        .admin-btn { position: fixed; bottom: 20px; left: 20px; background: var(--dark-color); color: white; padding: 10px 20px; border-radius: 30px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 8px; z-index: 100; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
+        .admin-btn:hover { background: #1a1c22; }
+        
+        .cart-btn { position: fixed; bottom: 20px; right: 20px; background: var(--primary-color); width: 60px; height: 60px; border-radius: 50%; display: flex; justify-content: center; align-items: center; color: white; font-size: 1.8rem; cursor: pointer; z-index: 100; box-shadow: 0 5px 15px rgba(193, 114, 37, 0.4); transition: 0.3s; }
+        .cart-btn:hover { transform: scale(1.05); }
+        .cart-badge { position: absolute; top: -5px; right: -5px; background: #FFC107; color: black; font-size: 0.8rem; font-weight: bold; width: 22px; height: 22px; border-radius: 50%; display: flex; justify-content: center; align-items: center; border: 2px solid var(--bg-color); }
+
+        /* MODAIS */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); backdrop-filter: blur(5px); z-index: 1000; justify-content: center; align-items: center; }
+        .modal-content { background: var(--bg-color); width: 90%; max-width: 500px; padding: 2.5rem; border-radius: 30px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+        .modal-content h3 { color: var(--text-color); margin-bottom: 1.5rem; display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 1.4rem; }
+        .modal-actions { display: flex; gap: 1rem; margin-top: 1.5rem; }
+        .modal-actions button { flex: 1; }
+
+        /* PAINEL ADMINISTRATIVO (Imagem 3) */
+        .admin-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
+        .admin-title { font-size: 2rem; color: var(--primary-color); border-left: 6px solid var(--primary-color); padding-left: 15px; margin: 0; display: inline-block;}
+        
+        .admin-tabs { display: flex; gap: 1rem; border-bottom: 2px solid #ddd; padding-bottom: 10px; margin-bottom: 2rem; flex-wrap: wrap; }
+        .tab { padding: 10px 20px; font-weight: 700; color: #777; cursor: pointer; border-radius: 20px; transition: 0.3s; display: flex; align-items: center; gap: 8px; }
+        .tab.active { background: var(--primary-color); color: white; }
+        .tab:hover:not(.active) { background: #eee; }
+        .tab-content { display: none; background: white; padding: 2rem; border-radius: 20px; box-shadow: 0 5px 20px rgba(0,0,0,0.05); }
         .tab-content.active { display: block; }
-        .admin-item { display: flex; justify-content: space-between; align-items: center; background:#fef9f0; padding:0.8rem 1.2rem; border-radius:32px; margin-bottom:0.8rem; flex-wrap:wrap; gap:1rem; }
-        .status-badge { padding:0.2rem 0.8rem; border-radius:40px; font-size:0.7rem; font-weight:bold; display:inline-block; }
-        .status-pending { background:#fef3c7; color:#b45309; }
-        .status-completed { background:#dcfce7; color:#15803d; }
-        .status-cancelled { background:#fee2e2; color:#b91c1c; }
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; margin-top: 1rem; }
-        .stats-card { background: white; border-radius: 32px; padding: 1rem; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
-        .stats-card canvas { max-height: 200px; width: 100%; }
-        .toast { position:fixed; bottom:100px; right:20px; background:#1f2937; color:white; padding:0.6rem 1.2rem; border-radius:60px; z-index:300; font-size:0.9rem; }
-        .go-top { position:fixed; bottom:100px; right:25px; background:#c47b2e; width:48px; height:48px; border-radius:50%; display:flex; align-items:center; justify-content:center; color:white; cursor:pointer; opacity:0; transition:0.2s; pointer-events:none; z-index:99; }
-        .go-top.show { opacity:1; pointer-events:auto; }
-        .login-select { width: 100%; padding: 12px; border-radius: 30px; border: 1px solid #e2e8f0; margin-bottom: 15px; font-size: 1rem; }
-        .perm-checkbox-group { display: flex; flex-wrap: wrap; gap: 1rem; margin: 1rem 0; }
-        .perm-checkbox-group label { display: flex; align-items: center; gap: 0.5rem; }
-        @media (max-width:700px){ .container{ padding:1rem; } .carousel-img{ height:180px; } .restaurant-header{ flex-direction: column; text-align: center; } .company-info-central{ text-align: center; } .logo-area{ margin:0 auto; } }
+
+        .list-item { display: flex; justify-content: space-between; align-items: center; padding: 1rem; border-bottom: 1px solid #eee; }
+        .list-item:last-child { border-bottom: none; }
+        
+        .stat-card { background: var(--bg-color); padding: 1.5rem; border-radius: 15px; border-left: 5px solid var(--primary-color); margin-bottom: 1rem; }
+
+        footer { text-align: center; padding: 2rem; font-size: 0.9rem; color: #777; border-top: 1px solid #ddd; margin-top: 2rem; background: white; }
+
+        @media (max-width: 768px) {
+            .restaurant-header { flex-direction: column; text-align: center; }
+            .company-info-central h1 { font-size: 1.8rem; }
+            .carousels-wrapper { flex-direction: column; }
+        }
     </style>
 </head>
 <body>
 
-<!-- ===== VISÃO CLIENTE ===== -->
+<div class="admin-btn" id="btnOpenLogin"><i class="fas fa-lock"></i> Admin</div>
+<div class="cart-btn" id="btnOpenCart" style="display: flex;">
+    <i class="fas fa-shopping-cart"></i>
+    <div class="cart-badge" id="cartCount">0</div>
+</div>
+
 <div id="customerView" class="container">
-    <div class="restaurant-header" id="restaurantHeader"></div>
-    <div class="search-bar"><input type="text" id="searchInput" placeholder="🔍 Buscar prato, bebida ou sobremesa..."></div>
-    <div class="carousel-parallel">
-        <div class="carousel-box"><h3><i class="fas fa-star"></i> Pratos da Casa</h3><div class="carousel" id="featuredCarousel"><div class="carousel-btn carousel-btn-left" id="featuredPrev"><i class="fas fa-chevron-left"></i></div><div class="carousel-inner"><div class="carousel-slide" id="featuredSlide"></div></div><div class="carousel-btn carousel-btn-right" id="featuredNext"><i class="fas fa-chevron-right"></i></div></div></div>
-        <div class="carousel-box"><h3><i class="fas fa-camera"></i> Freezer da Semana</h3><div class="carousel" id="freezerCarousel"><div class="carousel-btn carousel-btn-left" id="freezerPrev"><i class="fas fa-chevron-left"></i></div><div class="carousel-inner"><div class="carousel-slide" id="freezerSlide"></div></div><div class="carousel-btn carousel-btn-right" id="freezerNext"><i class="fas fa-chevron-right"></i></div></div></div>
-    </div>
-    <div><h2><i class="fas fa-utensils"></i> Comidas</h2><div id="foodsGrid" class="dishes-grid"></div></div>
-    <div><h2><i class="fas fa-mug-hot"></i> Bebidas</h2><div id="drinksGrid" class="dishes-grid"></div></div>
-    <div><h2><i class="fas fa-ice-cream"></i> Sobremesas</h2><div id="dessertsGrid" class="dishes-grid"></div></div>
-</div>
-
-<!-- ===== PAINEL ADMIN ===== -->
-<div id="adminView" style="display: none;">
-    <div class="container">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;"><h2>Painel Administrativo</h2><button id="adminLogout">Sair</button></div>
-        <div class="admin-tabs" id="adminTabs"></div>
-        <div id="tab-empresa" class="tab-content"><div class="card"><h3>Dados da Empresa</h3><input id="compName" placeholder="Nome do restaurante"><input type="file" id="compLogoUpload" accept="image/*"><div id="compLogoPreview" style="margin-top:0.5rem;"></div><input id="compAddress" placeholder="Endereço"><input id="compEmail" placeholder="Email"><input id="compWhatsapp" placeholder="WhatsApp (código país + número)"><button id="saveCompanyBtn">Salvar Empresa</button></div></div>
-        <div id="tab-cardapio" class="tab-content"><div class="card"><h3>Gerenciar Itens</h3><button id="newDishBtn">+ Novo Item</button><div id="dishForm" style="display:none; background:#fef3e4; padding:1rem; border-radius:32px; margin-top:1rem;"><h3 id="dishFormTitle">Novo Item</h3><input id="dishName" placeholder="Nome"><textarea id="dishDesc" placeholder="Descrição" rows="2"></textarea><input id="dishPrice" placeholder="Preço (Kz)"><select id="dishCategory"><option value="comida">Comida</option><option value="bebida">Bebida</option><option value="sobremesa">Sobremesa</option></select><input type="file" id="dishImageFile" accept="image/*"><div id="dishImagePreview" style="margin-top:5px;"></div><label><input type="checkbox" id="dishFeatured"> Destaque</label><div><button id="saveDishBtn">Salvar</button><button id="cancelDishBtn" class="btn-outline">Cancelar</button></div></div><div id="dishesAdminList"></div></div></div>
-        <div id="tab-freezer" class="tab-content"><div class="card"><h3>Fotos do Freezer (Upload)</h3><input type="file" id="freezerUpload" accept="image/*"><button id="addFreezerBtn">Adicionar Foto</button><div id="freezerAdminList"></div></div></div>
-        <div id="tab-pedidos" class="tab-content">
-            <div class="card"><h3>Filtros de Pedidos</h3><div style="display:flex; gap:0.5rem; flex-wrap:wrap;"><input id="orderSearchName" placeholder="Cliente"><input type="date" id="orderStartDate"><input type="date" id="orderEndDate"><button id="filterOrdersBtn">Filtrar</button><button id="clearOrdersFilter" class="btn-outline">Limpar</button><button id="exportReportBtn" class="btn-outline"><i class="fas fa-file-pdf"></i> Gerar Relatório PDF</button></div></div>
-            <div class="card"><h3>Lista de Pedidos</h3><div id="ordersList" style="max-height: 300px; overflow-y: auto;"></div></div>
-            <div class="stats-grid"><div class="stats-card"><h4>📈 Pedidos por Dia</h4><canvas id="ordersChart" height="150"></canvas></div><div class="stats-card"><h4>🥧 Status dos Pedidos</h4><canvas id="statusChart" height="150"></canvas></div><div class="stats-card"><h4>💰 Faturamento por Categoria</h4><canvas id="categoryRevenueChart" height="150"></canvas></div><div class="stats-card"><h4>🍛 Itens mais Pedidos</h4><canvas id="topItemsChart" height="150"></canvas></div></div>
-            <div class="card"><h3>Resumo Estatístico</h3><div id="statsSummary"></div></div>
+    <div class="restaurant-header">
+        <div class="logo-area"><img id="displayLogo" src="" class="logo-img" alt="Logo"></div>
+        <div class="company-info-central">
+            <h1 id="displayName">Meu Restaurante</h1>
+            <div class="contact-info">
+                <span><i class="fas fa-map-marker-alt"></i> <span id="displayAddress">Localização</span></span>
+                <span><i class="fas fa-envelope"></i> <span id="displayEmail">email@exemplo.com</span></span>
+                <span><i class="fab fa-whatsapp"></i> <a id="displayWaLink" href="#" target="_blank" style="color:inherit; text-decoration:none;">Pedir via WhatsApp</a></span>
+            </div>
         </div>
-        <div id="tab-utilizadores" class="tab-content"><div class="card"><h3>Utilizadores e Permissões</h3><button id="registerUserBtn">+ Registrar Novo Utilizador</button><div id="usersList"></div></div></div>
-        <div id="tab-manutencao" class="tab-content"><div class="card"><h3>Backup e Restauração</h3><button id="exportDataBtn">Exportar JSON</button><button id="importDataBtn" class="btn-outline">Importar</button><input type="file" id="importFile" style="display:none;"><button id="resetDataBtn" style="background:#dc2626;">Restaurar Padrão</button></div></div>
+    </div>
+
+    <div class="search-container">
+        <input type="text" id="searchInput" placeholder="🔍 Buscar prato, bebida ou sobremesa...">
+    </div>
+
+    <div class="carousels-wrapper">
+        <div class="carousel-section">
+            <h2><i class="fas fa-star"></i> Pratos da Casa</h2>
+            <div class="carousel-container">
+                <button class="nav-btn nav-left" onclick="slideCarousel('featured', -1)"><i class="fas fa-chevron-left"></i></button>
+                <div class="carousel-track" id="trackFeatured"></div>
+                <button class="nav-btn nav-right" onclick="slideCarousel('featured', 1)"><i class="fas fa-chevron-right"></i></button>
+            </div>
+        </div>
+        <div class="carousel-section">
+            <h2><i class="fas fa-camera"></i> Freezer da Semana</h2>
+            <div class="carousel-container">
+                <button class="nav-btn nav-left" onclick="slideCarousel('freezer', -1)"><i class="fas fa-chevron-left"></i></button>
+                <div class="carousel-track" id="trackFreezer"></div>
+                <button class="nav-btn nav-right" onclick="slideCarousel('freezer', 1)"><i class="fas fa-chevron-right"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <h2><i class="fas fa-utensils"></i> Comidas</h2>
+    <div id="gridComidas" class="grid"></div>
+    
+    <h2><i class="fas fa-mug-hot"></i> Bebidas</h2>
+    <div id="gridBebidas" class="grid"></div>
+    
+    <h2><i class="fas fa-ice-cream"></i> Sobremesas</h2>
+    <div id="gridSobremesas" class="grid"></div>
+</div>
+
+<div id="adminView" class="container" style="display: none;">
+    <div class="admin-header">
+        <h1 class="admin-title">Painel Administrativo</h1>
+        <button onclick="logoutAdmin()" style="background: #C17225; padding: 0.5rem 1.5rem; border-radius: 20px;">Sair</button>
+    </div>
+
+    <div class="admin-tabs">
+        <div class="tab active" data-target="tabEmpresa"><i class="fas fa-store"></i> Empresa</div>
+        <div class="tab" data-target="tabCardapio"><i class="fas fa-utensils"></i> Cardápio</div>
+        <div class="tab" data-target="tabFreezer"><i class="fas fa-camera"></i> Freezer</div>
+        <div class="tab" data-target="tabPedidos"><i class="fas fa-box"></i> Pedidos & Estatísticas</div>
+        <div class="tab" data-target="tabUtilizadores"><i class="fas fa-users"></i> Utilizadores</div>
+        <div class="tab" data-target="tabManutencao"><i class="fas fa-tools"></i> Manutenção</div>
+    </div>
+
+    <div id="tabEmpresa" class="tab-content active">
+        <h3>Dados da Empresa</h3>
+        <input type="text" id="empName" placeholder="Nome do Restaurante">
+        <div style="margin-bottom: 15px;">
+            <label style="font-weight: 600; display:block; margin-bottom: 5px;">Logótipo:</label>
+            <input type="file" id="empLogo" accept="image/*" style="border: 1px solid #ddd; padding: 10px; border-radius: 10px;">
+        </div>
+        <input type="text" id="empAddress" placeholder="Endereço">
+        <input type="email" id="empEmail" placeholder="Email de contacto">
+        <input type="text" id="empWa" placeholder="WhatsApp (Ex: 2449...)">
+        <button onclick="saveEmpresa()">Salvar Empresa</button>
+    </div>
+
+    <div id="tabCardapio" class="tab-content">
+        <div style="display:flex; justify-content:space-between; margin-bottom: 1.5rem;">
+            <h3>Gestão de Estoque / Cardápio</h3>
+            <button onclick="openFormCardapio()">+ Adicionar Item</button>
+        </div>
+        
+        <div id="formCardapio" style="display:none; background: #f9f9f9; padding: 20px; border-radius: 15px; margin-bottom: 20px; border: 1px solid #eee;">
+            <h4 id="formCardapioTitle" style="margin-bottom: 10px;">Novo Item</h4>
+            <input type="text" id="prdName" placeholder="Nome">
+            <textarea id="prdDesc" placeholder="Descrição"></textarea>
+            <input type="number" id="prdPrice" placeholder="Preço (Kz)">
+            <select id="prdCat">
+                <option value="comida">Comida</option>
+                <option value="bebida">Bebida</option>
+                <option value="sobremesa">Sobremesa</option>
+            </select>
+            <input type="file" id="prdImg" accept="image/*" style="border:1px solid #ddd; padding:10px; border-radius:10px; margin-bottom:15px;">
+            <label style="display:block; margin-bottom: 15px;">
+                <input type="checkbox" id="prdFeatured"> Destacar (Pratos da Casa)
+            </label>
+            <button onclick="savePrato()">Guardar</button>
+            <button class="btn-outline" onclick="document.getElementById('formCardapio').style.display='none'">Cancelar</button>
+        </div>
+        
+        <div id="listaCardapio"></div>
+    </div>
+
+    <div id="tabFreezer" class="tab-content">
+        <h3>Freezer da Semana</h3>
+        <p style="margin-bottom: 15px; color:#666;">Adicione fotos do expositor ou do ambiente.</p>
+        <input type="file" id="freezImg" accept="image/*" style="border:1px solid #ddd; padding:10px; border-radius:10px; margin-bottom:15px;">
+        <button onclick="saveFreezer()">Adicionar Foto</button>
+        <div id="listaFreezer" style="display:flex; flex-wrap:wrap; gap:15px; margin-top:20px;"></div>
+    </div>
+
+    <div id="tabPedidos" class="tab-content">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 1.5rem;">
+            <h3>Controlo de Encomendas</h3>
+            <button class="btn-outline" onclick="exportPDF()"><i class="fas fa-file-pdf"></i> Exportar Relatório</button>
+        </div>
+        
+        <div style="display: flex; gap: 1rem; margin-bottom: 2rem;">
+            <div class="stat-card" style="flex:1;">
+                <h4 style="color:#777; font-size:0.9rem;">Total de Pedidos</h4>
+                <div id="statTotalPedidos" style="font-size:1.8rem; font-weight:bold; color:var(--primary-color);">0</div>
+            </div>
+            <div class="stat-card" style="flex:1;">
+                <h4 style="color:#777; font-size:0.9rem;">Receita Estimada</h4>
+                <div id="statReceita" style="font-size:1.8rem; font-weight:bold; color:var(--primary-color);">0 Kz</div>
+            </div>
+        </div>
+
+        <div id="listaPedidos"></div>
+    </div>
+
+    <div id="tabUtilizadores" class="tab-content">
+        <h3>Gestão de Acessos</h3>
+        <div style="background: #f9f9f9; padding: 20px; border-radius: 15px; margin-bottom: 20px; border: 1px solid #eee;">
+            <input type="text" id="usrName" placeholder="Nome do Utilizador">
+            <input type="password" id="usrPass" placeholder="Palavra-passe">
+            <button onclick="saveUser()">Adicionar Utilizador</button>
+        </div>
+        <div id="listaUtilizadores"></div>
+    </div>
+
+    <div id="tabManutencao" class="tab-content">
+        <h3>Manutenção do Sistema</h3>
+        <p style="color:#666; margin-bottom: 20px;">Ferramentas de diagnóstico e limpeza de cache do ERP.</p>
+        
+        <div style="border: 1px solid #eee; padding: 20px; border-radius: 15px; margin-bottom: 15px;">
+            <h4 style="margin-bottom: 10px;"><i class="fas fa-broom"></i> Limpeza de Cache Local</h4>
+            <p style="font-size: 0.9rem; margin-bottom: 15px; color: #555;">Remove configurações temporárias do navegador. Não apaga dados da base de dados.</p>
+            <button class="btn-outline" onclick="localStorage.clear(); alert('Cache limpo!'); location.reload();">Limpar Cache do Navegador</button>
+        </div>
+        
+        <div style="border: 1px solid #eee; padding: 20px; border-radius: 15px;">
+            <h4 style="margin-bottom: 10px;"><i class="fas fa-database"></i> Estado da Ligação Supabase</h4>
+            <div id="dbStatus" style="font-weight: bold; color: green;">Conectado e Operacional</div>
+        </div>
     </div>
 </div>
 
-<!-- ===== MODAIS ===== -->
-<div id="cartModal" class="modal">
+<footer>
+    <strong>KEBRYKA, CONSULTORIA FORMAÇÃO E SERVIÇOS, LDA</strong><br>
+    Luanda, Angola | Software Gestão & Cardápios Web
+</footer>
+
+<div id="modalLogin" class="modal-overlay">
     <div class="modal-content">
-        <h3><i class="fas fa-shopping-cart"></i> Seu Carrinho</h3>
-        <div id="cartItemsList" style="max-height: 300px; overflow-y: auto; margin: 1rem 0;"></div>
-        <div id="cartTotal" style="font-size:1.3rem; font-weight:bold; text-align:right; margin:1rem 0;"></div>
-        <input id="customerName" placeholder="Seu nome *" style="margin-bottom:0.5rem;">
-        <input id="customerAddress" placeholder="Endereço para entrega">
-        <textarea id="orderNote" placeholder="Observações (ex: ponto de referência)" rows="2" style="margin:0.5rem 0;"></textarea>
-        <div style="display:flex; gap:1rem; justify-content:flex-end;">
-            <button id="sendOrderBtn" style="background:#25D366;"><i class="fab fa-whatsapp"></i> Enviar Pedido</button>
-            <button id="closeCartBtn" class="btn-outline">Fechar</button>
+        <h3><i class="fas fa-lock"></i> Acesso Administrativo</h3>
+        <select id="loginUser"></select>
+        <input type="password" id="loginPass" placeholder="Digite sua senha">
+        <div class="modal-actions">
+            <button onclick="doLogin()">Entrar</button>
+            <button class="btn-outline" onclick="closeModals()">Cancelar</button>
         </div>
     </div>
 </div>
-<div id="detailModal" class="modal"><div class="modal-content" id="detailContent"></div></div>
-<div id="userRegisterModal" class="modal"><div class="modal-content"><h3>Registar / Editar Utilizador</h3><input id="regName" placeholder="Nome completo"><input type="password" id="regPass" placeholder="Senha"><div class="perm-checkbox-group"><label><strong>Permissões:</strong></label><label><input type="checkbox" value="empresa"> Empresa</label><label><input type="checkbox" value="cardapio"> Cardápio</label><label><input type="checkbox" value="freezer"> Freezer</label><label><input type="checkbox" value="pedidos"> Pedidos</label><label><input type="checkbox" value="utilizadores"> Utilizadores</label><label><input type="checkbox" value="manutencao"> Manutenção</label></div><input type="hidden" id="editingUserId"><button id="confirmRegBtn">Salvar</button><button id="cancelRegBtn" class="btn-outline">Cancelar</button></div></div>
-<div id="adminLoginModal" class="modal"><div class="modal-content login-modal-content"><h3><i class="fas fa-lock"></i> Acesso Administrativo</h3><select id="loginUserSelect" class="login-select"></select><input type="password" id="loginPass" placeholder="Digite sua senha"><button id="loginSubmitBtn">Entrar</button><button id="loginCancelBtn" class="btn-outline">Cancelar</button></div></div>
 
-<div class="cart-floating" id="cartFloat"><i class="fas fa-shopping-cart"></i><span class="cart-count" id="cartCount">0</span></div>
-<div class="go-top" id="goTop"><i class="fas fa-arrow-up"></i></div>
+<div id="modalCart" class="modal-overlay">
+    <div class="modal-content" style="max-width: 600px; text-align: left;">
+        <h3 style="justify-content: flex-start;"><i class="fas fa-shopping-cart"></i> O Seu Pedido</h3>
+        <div id="cartItems" style="max-height: 300px; overflow-y: auto; margin-bottom: 15px; padding-right: 10px;"></div>
+        <div style="text-align: right; font-size: 1.4rem; font-weight: bold; color: var(--primary-color); margin-bottom: 20px;" id="cartTotalUI"></div>
+        
+        <input type="text" id="cliName" placeholder="Nome Completo *" required>
+        <input type="text" id="cliEnd" placeholder="Endereço de Entrega (Opcional)">
+        <textarea id="cliNote" placeholder="Notas (Troco, observações...)"></textarea>
+        
+        <div class="modal-actions">
+            <button class="btn-outline" onclick="closeModals()">Voltar</button>
+            <button style="background: #25D366;" onclick="sendOrder()"><i class="fab fa-whatsapp"></i> Confirmar Pedido</button>
+        </div>
+    </div>
+</div>
 
 <script>
-    // ============================================================
-    //  NOVAS CREDENCIAIS SUPABASE (ATUALIZADAS)
-    // ============================================================
-    const SUPABASE_URL = 'https://lpmlpzgkzgjjaratwywk.supabase.co';
-    const SUPABASE_ANON_KEY = 'sb_publishable_sTOrQww-z_zW4q9V8sDefw_k-BG64wX';
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    const STORAGE_BUCKET = 'restaurant-images';
+    // Configuração Supabase (Mantida a do utilizador)
+    const SUPABASE_URL = "https://lpmlpzgkzgjjaratwywk.supabase.co";
+    const SUPABASE_KEY = "sb_publishable_sTOrQww-z_zW4q9V8sDefw_k-BG64wX";
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    // ============================================================
-    //  ESTADO GLOBAL
-    // ============================================================
-    let currentUser = null;
+    let db = { empresa: {}, pratos: [], freezer: [], pedidos: [], utilizadores: [] };
     let cart = [];
-    let editingDishId = null;
-    let featuredInterval, freezerInterval;
-    let ordersChart, statusChart, categoryChart, topItemsChart;
-    let companyData = {}, dishesData = [], freezerData = [], usersData = [];
-    let currentFilteredOrders = [];
-    let currentActiveTab = 'empresa';
+    let editId = null;
+    let idxFeatured = 0;
+    let idxFreezer = 0;
 
-    // ============================================================
-    //  UTILITÁRIOS
-    // ============================================================
-    function formatKz(v) { return v.toLocaleString('pt-AO', {minimumFractionDigits:2}) + " Kz"; }
-    function parsePrice(s) { let n = parseFloat(s.replace(/\./g,'').replace(',','.')); return isNaN(n)?0:n; }
-    function showToast(msg) { let t=document.createElement('div'); t.className='toast'; t.innerText=msg; document.body.appendChild(t); setTimeout(()=>t.remove(),3000); }
-    function escapeHtml(str) { return (str||'').replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'})[m]); }
+    // Utilitários
+    const fKz = v => Number(v).toLocaleString('pt-AO', {minimumFractionDigits:2}) + " Kz";
+    const getBase64 = file => new Promise((res, rej) => { const r = new FileReader(); r.readAsDataURL(file); r.onload = ()=>res(r.result); r.onerror = e=>rej(e); });
 
-    async function uploadImage(file, folder) {
-        if(!file) return null;
-        const ext = file.name.split('.').pop();
-        const filePath = `${folder}/${Date.now()}.${ext}`;
-        const { error } = await supabase.storage.from(STORAGE_BUCKET).upload(filePath, file);
-        if(error) return null;
-        const { data: { publicUrl } } = supabase.storage.from(STORAGE_BUCKET).getPublicUrl(filePath);
-        return publicUrl;
-    }
-
-    // ============================================================
-    //  CRUD SUPABASE (substitui localStorage)
-    // ============================================================
-    async function loadCompany() {
-        const { data, error } = await supabase.from('company').select('*').eq('id',1).single();
-        if(error) return { name: "TASCA D' CAMASSA", logo_url: "", address: "Distrito da Mailandia, Bairro Cassenda - Luanda", email: "contato@tasca.com", whatsapp: "244923456789" };
-        return data;
-    }
-    async function saveCompany(comp, logoFile) {
-        let logoUrl = comp.logo_url;
-        if(logoFile) { let url = await uploadImage(logoFile,'logos'); if(url) logoUrl=url; }
-        const { error } = await supabase.from('company').upsert({ id:1, ...comp, logo_url: logoUrl });
-        if(error) throw error;
-        showToast('Empresa salva');
-        renderCustomer();
-        if(document.getElementById('adminView').style.display==='block') renderAdmin();
-    }
-    async function loadDishes() {
-        const { data, error } = await supabase.from('dishes').select('*');
-        if(error) return [];
-        return data;
-    }
-    async function saveDish(dish, imgFile) {
-        let imgUrl = dish.image_url;
-        if(imgFile) { let url = await uploadImage(imgFile,'dishes'); if(url) imgUrl=url; }
-        const dishData = {...dish, image_url: imgUrl};
-        if(dishData.id) {
-            await supabase.from('dishes').update(dishData).eq('id', dishData.id);
-        } else {
-            dishData.id = Date.now().toString();
-            await supabase.from('dishes').insert(dishData);
-        }
-        showToast('Item salvo');
-        renderCustomer();
-        if(document.getElementById('adminView').style.display==='block') renderAdmin();
-    }
-    async function deleteDish(id) {
-        await supabase.from('dishes').delete().eq('id', id);
-        showToast('Removido');
-        renderCustomer();
-        if(document.getElementById('adminView').style.display==='block') renderAdmin();
-    }
-    async function loadFreezer() {
-        const { data, error } = await supabase.from('freezer').select('*');
-        if(error) return [];
-        return data;
-    }
-    async function addFreezerPhoto(file) {
-        let url = await uploadImage(file,'freezer');
-        if(url) {
-            await supabase.from('freezer').insert({ id:Date.now().toString(), image_url:url, caption:'' });
-            showToast('Foto adicionada');
-            renderCustomer();
-            if(document.getElementById('adminView').style.display==='block') renderAdmin();
-        }
-    }
-    async function deleteFreezer(id) {
-        await supabase.from('freezer').delete().eq('id', id);
-        showToast('Foto removida');
-        renderCustomer();
-        if(document.getElementById('adminView').style.display==='block') renderAdmin();
-    }
-    async function loadUsers() {
-        const { data, error } = await supabase.from('users').select('*');
-        if(error) return [];
-        return data;
-    }
-    async function registerUser(name, pass, perms, editId=null) {
-        if(editId) {
-            await supabase.from('users').update({ name, password:pass, permissions:perms }).eq('id', editId);
-        } else {
-            await supabase.from('users').insert({ id:Date.now().toString(), name, password:pass, role:'user', permissions:perms, fixed:false });
-        }
-        showToast('Utilizador salvo');
-        if(document.getElementById('adminView').style.display==='block') renderAdmin();
-    }
-    async function deleteUser(id) {
-        await supabase.from('users').delete().eq('id', id);
-        showToast('Removido');
-        if(document.getElementById('adminView').style.display==='block') renderAdmin();
-    }
-    async function loadOrders() {
-        const { data, error } = await supabase.from('orders').select('*');
-        if(error) return [];
-        return data;
-    }
-    async function updateOrderStatus(id, status) {
-        await supabase.from('orders').update({ status }).eq('id', id);
-        showToast(`Pedido ${status}`);
-        if(document.getElementById('adminView').style.display==='block') renderOrdersList();
-    }
-    async function createOrder(order) {
-        await supabase.from('orders').insert(order);
+    async function loadData() {
+        try {
+            const [emp, prt, frz, ped, usr] = await Promise.all([
+                supabaseClient.from('empresa').select('*').single(),
+                supabaseClient.from('pratos').select('*').order('name'),
+                supabaseClient.from('freezer').select('*'),
+                supabaseClient.from('pedidos').select('*').order('date', {ascending: false}),
+                supabaseClient.from('utilizadores').select('*')
+            ]);
+            db.empresa = emp.data || {};
+            db.pratos = prt.data || [];
+            db.freezer = frz.data || [];
+            db.pedidos = ped.data || [];
+            db.utilizadores = usr.data || [];
+            renderAll();
+        } catch(e) { console.error("Erro BD:", e); }
     }
 
-    // ============================================================
-    //  CARRINHO (igual à versão local, mas usa Supabase para criar pedido)
-    // ============================================================
-    function updateCartUI() { document.getElementById('cartCount').innerText = cart.reduce((s,i)=>s+i.qty,0); }
-    function addToCart(dish) { let ex=cart.find(i=>i.id===dish.id); ex?ex.qty++:cart.push({...dish,qty:1}); updateCartUI(); showToast(`✅ ${dish.name} adicionado`); }
-    function renderCartModal() {
-        const cont = document.getElementById('cartItemsList');
-        if(!cart.length){ cont.innerHTML='<p>Carrinho vazio</p>'; document.getElementById('cartTotal').innerHTML=''; return; }
-        let html='', total=0;
-        cart.forEach((item,idx)=>{
-            let sub=item.price*item.qty;
-            total+=sub;
-            html+=`<div style="display:flex; justify-content:space-between; margin-bottom:8px; border-bottom:1px solid #eee;"><span><strong>${escapeHtml(item.name)}</strong> x${item.qty}</span><span>${formatKz(sub)}</span><div><button class="cart-dec" data-idx="${idx}" style="background:#ddd;">-</button> <button class="cart-remove" data-idx="${idx}" style="background:#dc2626;">x</button></div></div>`;
-        });
-        cont.innerHTML=html;
-        document.getElementById('cartTotal').innerHTML=`<strong>Total: ${formatKz(total)}</strong>`;
-        document.querySelectorAll('.cart-dec').forEach(btn=>btn.addEventListener('click',()=>{ let idx=parseInt(btn.dataset.idx); if(cart[idx].qty>1) cart[idx].qty--; else cart.splice(idx,1); updateCartUI(); renderCartModal(); }));
-        document.querySelectorAll('.cart-remove').forEach(btn=>btn.addEventListener('click',()=>{ cart.splice(parseInt(btn.dataset.idx),1); updateCartUI(); renderCartModal(); }));
-    }
-    async function submitOrder() {
-        if(!cart.length) return alert('Carrinho vazio');
-        const nome = document.getElementById('customerName').value.trim();
-        if(!nome) return alert('Digite seu nome');
-        const end = document.getElementById('customerAddress').value.trim();
-        const obs = document.getElementById('orderNote').value.trim();
-        const total = cart.reduce((s,i)=>s+i.price*i.qty,0);
-        const items = cart.map(i=>({ name:i.name, qty:i.qty, price:i.price }));
-        const order = {
-            id: Date.now().toString(),
-            date: new Date().toISOString(),
-            customer_name: nome,
-            address: end,
-            note: obs,
-            items,
-            total,
-            status: 'pending'
+    // Inicialização
+    window.onload = () => {
+        loadData();
+        
+        // Eventos dos botões flutuantes e pesquisa
+        document.getElementById('btnOpenLogin').onclick = () => {
+            const sel = document.getElementById('loginUser');
+            sel.innerHTML = db.utilizadores.length 
+                ? db.utilizadores.map(u => `<option value="${u.id}">${u.name}</option>`).join('')
+                : `<option value="">Nenhum utilizador (Crie um via BD)</option>`;
+            document.getElementById('modalLogin').style.display = 'flex';
         };
-        await createOrder(order);
-        const company = await loadCompany();
-        const msg = `*🍽️ NOVO PEDIDO - ${company.name}*\n*Cliente:* ${nome}\n*Endereço:* ${end||'---'}\n*Itens:*\n${cart.map(i=>`${i.name} x${i.qty} = ${formatKz(i.price*i.qty)}`).join('\n')}\n*Total:* ${formatKz(total)}\n*Obs:* ${obs||'Nenhuma'}\n\n🔔 Pedido gerado automaticamente.`;
-        const phone = company.whatsapp?.replace(/\D/g,'');
-        if(phone) window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`,'_blank');
-        showToast('Pedido enviado!');
-        cart = []; updateCartUI(); document.getElementById('cartModal').style.display='none';
-        if(currentUser && document.getElementById('adminView').style.display==='block') renderOrdersList();
+        
+        document.getElementById('btnOpenCart').onclick = () => {
+            renderCartUI();
+            document.getElementById('modalCart').style.display = 'flex';
+        };
+
+        document.getElementById('searchInput').addEventListener('input', renderClientMenu);
+
+        // Lógica das Tabs do Painel
+        document.querySelectorAll('.tab').forEach(t => {
+            t.onclick = () => {
+                document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(x => x.classList.remove('active'));
+                t.classList.add('active');
+                document.getElementById(t.dataset.target).classList.add('active');
+            };
+        });
+    };
+
+    function closeModals() {
+        document.querySelectorAll('.modal-overlay').forEach(m => m.style.display = 'none');
     }
 
-    // ============================================================
-    //  RENDER CLIENTE (igual à versão local, mas dados vêm do Supabase)
-    // ============================================================
-    async function renderCustomer() {
-        companyData = await loadCompany();
-        dishesData = await loadDishes();
-        freezerData = await loadFreezer();
-        const headerDiv = document.getElementById('restaurantHeader');
-        headerDiv.innerHTML = `
-            <div class="logo-area"><img src="${companyData.logo_url || 'https://placehold.co/130x130?text=Logo'}" class="logo-img" onerror="this.src='https://placehold.co/130x130'"></div>
-            <div class="company-info-central">
-                <h1>${escapeHtml(companyData.name)}</h1>
-                <div class="contact-info">
-                    <span><i class="fas fa-map-marker-alt"></i> ${escapeHtml(companyData.address)}</span>
-                    <span><i class="fas fa-envelope"></i> ${escapeHtml(companyData.email)}</span>
-                    <span><i class="fab fa-whatsapp"></i> <a href="https://wa.me/${(companyData.whatsapp||'').replace(/\D/g,'')}" target="_blank">Pedir via WhatsApp</a></span>
+    // --- RENDERIZAÇÃO CLIENTE ---
+    function renderAll() {
+        // Cabeçalho Empresa
+        document.getElementById('displayLogo').src = db.empresa.logo || 'https://placehold.co/120x120?text=Logo';
+        document.getElementById('displayName').innerText = db.empresa.name || "Meu Restaurante";
+        document.getElementById('displayAddress').innerText = db.empresa.address || "Endereço não definido";
+        document.getElementById('displayEmail').innerText = db.empresa.email || "email@naodefinido.com";
+        document.getElementById('displayWaLink').href = `https://wa.me/${(db.empresa.whatsapp||'').replace(/\D/g,'')}`;
+
+        renderClientMenu();
+        renderCarousels();
+        populateAdminPanel();
+    }
+
+    function renderClientMenu() {
+        const term = document.getElementById('searchInput').value.toLowerCase();
+        const filt = db.pratos.filter(p => p.name.toLowerCase().includes(term));
+        
+        const renderCard = p => `
+            <div class="card">
+                <img src="${p.image || 'https://placehold.co/400x200?text=Sem+Imagem'}" class="card-img">
+                <div class="card-body">
+                    <div class="card-title">${p.name} ${p.featured ? '<i class="fas fa-star" style="color:#C17225; font-size:1rem;"></i>' : ''}</div>
+                    <p style="color:#666; font-size:0.9rem; margin-bottom:10px;">${p.description || ''}</p>
+                    <div class="card-price">${fKz(p.price)}</div>
+                    <button onclick="addToCart('${p.id}')" style="width:100%; border-radius:10px;">Adicionar</button>
                 </div>
             </div>
         `;
-        const search = document.getElementById('searchInput').value.toLowerCase();
-        const filtered = dishesData.filter(d => d.name.toLowerCase().includes(search) || (d.description||'').toLowerCase().includes(search) || d.category.toLowerCase().includes(search));
-        const comidas = filtered.filter(d=>d.category==='comida');
-        const bebidas = filtered.filter(d=>d.category==='bebida');
-        const sobremesas = filtered.filter(d=>d.category==='sobremesa');
-        const renderDish = (d) => `
-            <div class="dish-card" data-id="${d.id}">
-                <div class="dish-img-container"><img src="${d.image_url || 'https://placehold.co/400x300'}" onerror="this.src='https://placehold.co/400x300'"></div>
-                <div class="dish-card-content">
-                    ${d.featured?'<div class="featured-badge"><i class="fas fa-star"></i> Destaque</div>':''}
-                    <h3>${escapeHtml(d.name)}</h3>
-                    <p>${escapeHtml((d.description||'').substring(0,80))}</p>
-                    <div class="price">${formatKz(d.price)}</div>
-                    <div class="card-actions"><button class="add-cart-btn" data-id="${d.id}">Pedir</button><button class="detail-btn" data-id="${d.id}">Detalhes</button></div>
-                </div>
-            </div>
-        `;
-        document.getElementById('foodsGrid').innerHTML = comidas.map(renderDish).join('');
-        document.getElementById('drinksGrid').innerHTML = bebidas.map(renderDish).join('');
-        document.getElementById('dessertsGrid').innerHTML = sobremesas.map(renderDish).join('');
-        document.querySelectorAll('.add-cart-btn').forEach(btn=>btn.addEventListener('click',e=>{ e.stopPropagation(); const dish = dishesData.find(d=>d.id===btn.dataset.id); if(dish) addToCart(dish); }));
-        document.querySelectorAll('.detail-btn').forEach(btn=>btn.addEventListener('click',e=>{ e.stopPropagation(); const dish = dishesData.find(d=>d.id===btn.dataset.id); if(dish){ document.getElementById('detailContent').innerHTML = `<h3>${escapeHtml(dish.name)}</h3><img src="${dish.image_url||'https://placehold.co/400x300'}" style="width:100%; max-height:250px;"><p>${escapeHtml(dish.description||'')}</p><div class="price">${formatKz(dish.price)}</div><button id="detailAddCartBtn">Adicionar</button><button class="btn-outline" id="closeDetailBtn">Fechar</button>`; document.getElementById('detailModal').style.display='flex'; document.getElementById('detailAddCartBtn').onclick = ()=>{ addToCart(dish); document.getElementById('detailModal').style.display='none'; }; document.getElementById('closeDetailBtn').onclick = ()=>document.getElementById('detailModal').style.display='none'; } }));
-        const featured = dishesData.filter(d=>d.featured).map(d=>({image:d.image_url, name:d.name}));
-        const freezer = freezerData.map(f=>({image:f.image_url}));
-        renderCarousel('featuredSlide', featured, 'featuredPrev', 'featuredNext', (int)=>{ if(featuredInterval) clearInterval(featuredInterval); featuredInterval=int; });
-        renderCarousel('freezerSlide', freezer, 'freezerPrev', 'freezerNext', (int)=>{ if(freezerInterval) clearInterval(freezerInterval); freezerInterval=int; });
-    }
-    function renderCarousel(slideId, items, prevId, nextId, setInt) {
-        const slide = document.getElementById(slideId);
-        if(!slide) return;
-        if(!items.length){ slide.innerHTML=`<div class="carousel-item"><div class="carousel-img">Sem conteúdo</div></div>`; return; }
-        slide.innerHTML = items.map(item=>`<div class="carousel-item"><img class="carousel-img" src="${item.image||'https://placehold.co/600x400'}" onerror="this.src='https://placehold.co/600x400'"><div class="carousel-caption">${item.name?escapeHtml(item.name):''}</div></div>`).join('');
-        let idx=0, total=items.length;
-        function update(){ slide.style.transform = `translateX(-${idx*100}%)`; }
-        update();
-        const prev = document.getElementById(prevId), next = document.getElementById(nextId);
-        if(prev) prev.onclick = ()=>{ idx = (idx-1+total)%total; update(); if(setInt) setInt(null); auto(); };
-        if(next) next.onclick = ()=>{ idx = (idx+1)%total; update(); if(setInt) setInt(null); auto(); };
-        let timer;
-        function auto(){ if(timer) clearInterval(timer); if(total>1) timer = setInterval(()=>{ idx = (idx+1)%total; update(); },5000); if(setInt) setInt(timer); }
-        auto();
+
+        document.getElementById('gridComidas').innerHTML = filt.filter(p=>p.category==='comida').map(renderCard).join('') || '<p>Nenhum item.</p>';
+        document.getElementById('gridBebidas').innerHTML = filt.filter(p=>p.category==='bebida').map(renderCard).join('') || '<p>Nenhum item.</p>';
+        document.getElementById('gridSobremesas').innerHTML = filt.filter(p=>p.category==='sobremesa').map(renderCard).join('') || '<p>Nenhum item.</p>';
     }
 
-    // ============================================================
-    //  ADMIN (igual à versão local, mas dados vêm do Supabase)
-    // ============================================================
-    async function renderAdmin() {
-        await refreshAll();
-        const isAdmin = currentUser.role === 'admin';
-        let userPerms = isAdmin ? ['empresa','cardapio','freezer','pedidos','utilizadores','manutencao'] : (currentUser.permissions || []);
-        const tabs = [
-            { id:'empresa', name:'🏪 Empresa' }, { id:'cardapio', name:'🍽️ Cardápio' }, { id:'freezer', name:'📸 Freezer' },
-            { id:'pedidos', name:'📦 Pedidos' }, { id:'utilizadores', name:'👥 Utilizadores' }, { id:'manutencao', name:'💾 Manutenção' }
-        ];
-        const allowed = tabs.filter(t => userPerms.includes(t.id));
-        const tabsContainer = document.getElementById('adminTabs');
-        tabsContainer.innerHTML = allowed.map(t => `<div class="admin-tab ${t.id === currentActiveTab ? 'active' : ''}" data-tab="${t.id}">${t.name}</div>`).join('');
-        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-        if(document.getElementById(`tab-${currentActiveTab}`)) document.getElementById(`tab-${currentActiveTab}`).classList.add('active');
-        else if(allowed.length) { currentActiveTab = allowed[0].id; document.getElementById(`tab-${currentActiveTab}`).classList.add('active'); }
-        document.querySelectorAll('.admin-tab').forEach(tab => {
-            tab.addEventListener('click', () => {
-                const target = tab.dataset.tab;
-                currentActiveTab = target;
-                document.querySelectorAll('.admin-tab').forEach(t=>t.classList.remove('active'));
-                tab.classList.add('active');
-                document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));
-                document.getElementById(`tab-${target}`).classList.add('active');
-            });
-        });
-        if(userPerms.includes('empresa')){
-            document.getElementById('compName').value = companyData.name;
-            document.getElementById('compAddress').value = companyData.address;
-            document.getElementById('compEmail').value = companyData.email;
-            document.getElementById('compWhatsapp').value = companyData.whatsapp;
-            document.getElementById('compLogoPreview').innerHTML = companyData.logo_url ? `<img src="${companyData.logo_url}" width="80">` : '';
-        }
-        if(userPerms.includes('cardapio')){
-            document.getElementById('dishesAdminList').innerHTML = dishesData.map(d=>`<div class="admin-item"><div><img src="${d.image_url||'https://placehold.co/50x50'}" width="50"> <strong>${escapeHtml(d.name)}</strong> ${formatKz(d.price)} (${d.category})</div><div><button class="edit-dish" data-id="${d.id}">Editar</button><button class="delete-dish" data-id="${d.id}">Excluir</button><label><input type="checkbox" class="featured-chk" data-id="${d.id}" ${d.featured?'checked':''}> Destaque</label></div></div>`).join('');
-            attachDishEvents();
-        } else document.getElementById('dishesAdminList').innerHTML='<p>Sem permissão.</p>';
-        if(userPerms.includes('freezer')){
-            document.getElementById('freezerAdminList').innerHTML = freezerData.map(f=>`<div class="admin-item"><img src="${f.image_url}" width="60"><button class="del-freezer" data-id="${f.id}">Remover</button></div>`).join('');
-            attachFreezerEvents();
-        } else document.getElementById('freezerAdminList').innerHTML='<p>Sem permissão.</p>';
-        if(userPerms.includes('utilizadores') && isAdmin){
-            document.getElementById('usersList').innerHTML = usersData.map(u=>`<div class="admin-item"><span>${escapeHtml(u.name)} (${u.role}) ${u.fixed?'<i class="fas fa-crown"></i>':''}</span><div>${!u.fixed?`<button class="edit-user-perms" data-id="${u.id}">✏️</button><button class="del-user" data-id="${u.id}">Remover</button>`:''}</div></div>`).join('');
-            attachUserEvents();
-        } else if(userPerms.includes('utilizadores')) document.getElementById('usersList').innerHTML='<p>Apenas administradores podem gerir utilizadores.</p>';
-        if(userPerms.includes('pedidos')){ await renderOrdersList(); await updateStats(); }
-        function attachDishEvents(){
-            document.querySelectorAll('.edit-dish').forEach(btn=>btn.addEventListener('click',async()=>{ const dish = dishesData.find(d=>d.id===btn.dataset.id); if(dish){ editingDishId=dish.id; document.getElementById('dishName').value=dish.name; document.getElementById('dishDesc').value=dish.description||''; document.getElementById('dishPrice').value=dish.price; document.getElementById('dishCategory').value=dish.category; document.getElementById('dishFeatured').checked=dish.featured; document.getElementById('dishImageFile').value=''; document.getElementById('dishImagePreview').innerHTML=dish.image_url?`<img src="${dish.image_url}" width="80">`:''; document.getElementById('dishForm').style.display='block'; document.getElementById('dishFormTitle').innerText='Editar Item'; } }));
-            document.querySelectorAll('.delete-dish').forEach(btn=>btn.addEventListener('click',async()=>{ if(confirm('Remover?')) await deleteDish(btn.dataset.id); }));
-            document.querySelectorAll('.featured-chk').forEach(chk=>chk.addEventListener('change',async()=>{ const dish = dishesData.find(d=>d.id===chk.dataset.id); if(dish){ dish.featured=chk.checked; await saveDish(dish, null); } }));
-        }
-        function attachFreezerEvents(){
-            document.querySelectorAll('.del-freezer').forEach(btn=>btn.addEventListener('click',async()=>{ if(confirm('Remover foto?')) await deleteFreezer(btn.dataset.id); }));
-        }
-        function attachUserEvents(){
-            document.querySelectorAll('.edit-user-perms').forEach(btn=>btn.addEventListener('click',()=>{ const user = usersData.find(u=>u.id===btn.dataset.id); if(user && !user.fixed){ document.getElementById('regName').value=user.name; document.getElementById('regPass').value=user.password; document.getElementById('editingUserId').value=user.id; const perms=user.permissions||[]; document.querySelectorAll('#userRegisterModal .perm-checkbox-group input').forEach(cb=>cb.checked=perms.includes(cb.value)); document.getElementById('userRegisterModal').style.display='flex'; } }));
-            document.querySelectorAll('.del-user').forEach(btn=>btn.addEventListener('click',async()=>{ if(confirm('Remover?')) await deleteUser(btn.dataset.id); }));
-        }
+    // Lógica Carrossel Corrigida
+    function renderCarousels() {
+        const feat = db.pratos.filter(p => p.featured);
+        const trkF = document.getElementById('trackFeatured');
+        trkF.innerHTML = feat.map(p => `<div class="carousel-slide"><img src="${p.image}"><div class="carousel-caption">${p.name}</div></div>`).join('') || '<div class="carousel-slide"><img src="https://placehold.co/600x300?text=Sem+Destaques"></div>';
+        
+        const trkFrz = document.getElementById('trackFreezer');
+        trkFrz.innerHTML = db.freezer.map(f => `<div class="carousel-slide"><img src="${f.image}"></div>`).join('') || '<div class="carousel-slide"><img src="https://placehold.co/600x300?text=Vazio"></div>';
+        
+        idxFeatured = 0; idxFreezer = 0;
+        trkF.style.transform = `translateX(0)`;
+        trkFrz.style.transform = `translateX(0)`;
     }
-    async function refreshAll() {
-        companyData = await loadCompany();
-        dishesData = await loadDishes();
-        freezerData = await loadFreezer();
-        usersData = await loadUsers();
-    }
-    async function renderOrdersList() {
-        let orders = await loadOrders();
-        const search = document.getElementById('orderSearchName').value.toLowerCase();
-        const start = document.getElementById('orderStartDate').value;
-        const end = document.getElementById('orderEndDate').value;
-        let filtered = orders.filter(o=>{
-            if(search && !o.customer_name.toLowerCase().includes(search)) return false;
-            if(start && o.date.split('T')[0] < start) return false;
-            if(end && o.date.split('T')[0] > end) return false;
-            return true;
+
+    window.slideCarousel = (type, dir) => {
+        const track = type === 'featured' ? document.getElementById('trackFeatured') : document.getElementById('trackFreezer');
+        const items = type === 'featured' ? db.pratos.filter(p=>p.featured) : db.freezer;
+        const total = items.length;
+        if(total <= 1) return;
+
+        if(type === 'featured') {
+            idxFeatured = (idxFeatured + dir + total) % total;
+            track.style.transform = `translateX(-${idxFeatured * 100}%)`;
+        } else {
+            idxFreezer = (idxFreezer + dir + total) % total;
+            track.style.transform = `translateX(-${idxFreezer * 100}%)`;
+        }
+    };
+
+    // --- CARRINHO ---
+    window.addToCart = (id) => {
+        const item = db.pratos.find(p => p.id === id);
+        const ex = cart.find(c => c.id === id);
+        if(ex) ex.qty++; else cart.push({...item, qty:1});
+        document.getElementById('cartCount').innerText = cart.reduce((s,c)=>s+c.qty,0);
+    };
+
+    function renderCartUI() {
+        let h = '', t = 0;
+        cart.forEach((c, i) => {
+            const sub = c.price * c.qty; t += sub;
+            h += `<div style="display:flex; justify-content:space-between; margin-bottom:10px; border-bottom:1px solid #eee; padding-bottom:10px;">
+                    <div><strong>${c.name}</strong><br><small>${fKz(c.price)} x ${c.qty}</small></div>
+                    <div style="text-align:right;">
+                        <strong style="color:var(--primary-color);">${fKz(sub)}</strong><br>
+                        <button onclick="modQty(${i}, -1)" style="padding:2px 8px; border-radius:5px; margin-top:5px;">-</button>
+                        <button onclick="modQty(${i}, 1)" style="padding:2px 8px; border-radius:5px; margin-top:5px;">+</button>
+                    </div>
+                  </div>`;
         });
-        currentFilteredOrders = filtered;
-        document.getElementById('ordersList').innerHTML = filtered.map(o=>`
-            <div class="admin-item">
-                <div><strong>${escapeHtml(o.customer_name)}</strong> - ${new Date(o.date).toLocaleString()} - Total: ${formatKz(o.total)}<br><span class="status-badge status-${o.status}">${o.status==='pending'?'Pendente':o.status==='completed'?'Concluído':'Cancelado'}</span></div>
-                <div>${o.status==='pending'? `<button class="complete-order" data-id="${o.id}">✅ Concluir</button> <button class="cancel-order" data-id="${o.id}">❌ Cancelar</button>` : `<button class="revert-order" data-id="${o.id}">🔄 Reabrir</button>`}</div>
+        document.getElementById('cartItems').innerHTML = h || '<p>Carrinho vazio.</p>';
+        document.getElementById('cartTotalUI').innerText = `Total: ${fKz(t)}`;
+        document.getElementById('cartCount').innerText = cart.reduce((s,c)=>s+c.qty,0);
+    }
+
+    window.modQty = (i, v) => { cart[i].qty += v; if(cart[i].qty<=0) cart.splice(i,1); renderCartUI(); };
+
+    window.sendOrder = async () => {
+        if(!cart.length) return alert('Carrinho vazio.');
+        const nome = document.getElementById('cliName').value;
+        if(!nome) return alert('Insira o seu nome.');
+        
+        const tot = cart.reduce((s,c)=>s+(c.price*c.qty), 0);
+        let msg = `*NOVA ENCOMENDA - ${db.empresa.name}*\n\n*Cliente:* ${nome}\n*Morada:* ${document.getElementById('cliEnd').value}\n\n*Pedido:*\n`;
+        cart.forEach(c => msg += `- ${c.qty}x ${c.name} (${fKz(c.price*c.qty)})\n`);
+        msg += `\n*Total:* ${fKz(tot)}\n*Notas:* ${document.getElementById('cliNote').value}\n\n_KEBRYKA ERP_`;
+
+        await supabaseClient.from('pedidos').insert({ id: Date.now().toString(), customer_name: nome, items: cart, total: tot, status: 'pendente', address: document.getElementById('cliEnd').value });
+        
+        const wa = (db.empresa.whatsapp||'').replace(/\D/g,'');
+        if(wa) window.open(`https://wa.me/${wa}?text=${encodeURIComponent(msg)}`);
+        
+        cart = []; renderCartUI(); closeModals(); loadData();
+    };
+
+    // --- ADMINISTRAÇÃO ---
+    window.doLogin = () => {
+        const id = document.getElementById('loginUser').value;
+        const pass = document.getElementById('loginPass').value;
+        const u = db.utilizadores.find(x => x.id === id);
+        if(u && u.password === pass) {
+            document.getElementById('modalLogin').style.display = 'none';
+            document.getElementById('customerView').style.display = 'none';
+            document.getElementById('btnOpenLogin').style.display = 'none';
+            document.getElementById('btnOpenCart').style.display = 'none';
+            document.getElementById('adminView').style.display = 'block';
+            populateAdminPanel();
+        } else { alert("Credenciais erradas."); }
+        document.getElementById('loginPass').value = '';
+    };
+
+    window.logoutAdmin = () => {
+        document.getElementById('adminView').style.display = 'none';
+        document.getElementById('customerView').style.display = 'block';
+        document.getElementById('btnOpenLogin').style.display = 'flex';
+        document.getElementById('btnOpenCart').style.display = 'flex';
+    };
+
+    function populateAdminPanel() {
+        // Empresa
+        document.getElementById('empName').value = db.empresa.name || '';
+        document.getElementById('empAddress').value = db.empresa.address || '';
+        document.getElementById('empEmail').value = db.empresa.email || '';
+        document.getElementById('empWa').value = db.empresa.whatsapp || '';
+
+        // Cardápio
+        document.getElementById('listaCardapio').innerHTML = db.pratos.map(p => `
+            <div class="list-item">
+                <div style="display:flex; align-items:center; gap:15px;">
+                    <img src="${p.image}" style="width:50px; height:50px; border-radius:10px; object-fit:cover;">
+                    <div><strong>${p.name}</strong><br><small>${fKz(p.price)}</small></div>
+                </div>
+                <div>
+                    <button class="btn-outline" onclick="editPrato('${p.id}')" style="padding:5px 10px;"><i class="fas fa-edit"></i></button>
+                    <button onclick="delPrato('${p.id}')" style="background:#dc3545; padding:5px 10px;"><i class="fas fa-trash"></i></button>
+                </div>
             </div>`).join('');
-        document.querySelectorAll('.complete-order').forEach(btn=>btn.addEventListener('click',()=> updateOrderStatus(btn.dataset.id,'completed')));
-        document.querySelectorAll('.cancel-order').forEach(btn=>btn.addEventListener('click',()=> updateOrderStatus(btn.dataset.id,'cancelled')));
-        document.querySelectorAll('.revert-order').forEach(btn=>btn.addEventListener('click',()=> updateOrderStatus(btn.dataset.id,'pending')));
-        updateStats();
-    }
-    async function updateStats() {
-        const filtered = currentFilteredOrders;
-        const daily = {}; filtered.forEach(o=>{ const day=o.date.split('T')[0]; daily[day]=(daily[day]||0)+1; });
-        const labels = Object.keys(daily).sort(), data = labels.map(l=>daily[l]);
-        if(ordersChart) ordersChart.destroy();
-        const ctx = document.getElementById('ordersChart').getContext('2d');
-        ordersChart = new Chart(ctx, { type:'line', data:{ labels, datasets:[{ label:'Pedidos', data, borderColor:'#c47b2e', fill:false }] } });
-        const statusCount = { pending:0, completed:0, cancelled:0 };
-        filtered.forEach(o=> statusCount[o.status]++);
-        if(statusChart) statusChart.destroy();
-        const ctxStatus = document.getElementById('statusChart').getContext('2d');
-        statusChart = new Chart(ctxStatus, { type:'doughnut', data:{ labels:['Pendentes','Concluídos','Cancelados'], datasets:[{ data:[statusCount.pending, statusCount.completed, statusCount.cancelled], backgroundColor:['#f59e0b','#10b981','#ef4444'] }] } });
-        const catRev = { comida:0, bebida:0, sobremesa:0 };
-        filtered.forEach(o=>{ if(o.status==='completed'){ o.items.forEach(item=>{ const dish = dishesData.find(d=>d.name===item.name); const cat = dish ? dish.category : 'comida'; catRev[cat] += item.price * item.qty; }); } });
-        if(categoryChart) categoryChart.destroy();
-        const ctxCat = document.getElementById('categoryRevenueChart').getContext('2d');
-        categoryChart = new Chart(ctxCat, { type:'bar', data:{ labels:['Comidas','Bebidas','Sobremesas'], datasets:[{ label:'Faturamento (Kz)', data:[catRev.comida, catRev.bebida, catRev.sobremesa], backgroundColor:'#c47b2e' }] } });
-        const itemCount = {};
-        filtered.forEach(o=>{ o.items.forEach(i=>{ itemCount[i.name] = (itemCount[i.name]||0)+i.qty; }); });
-        const top = Object.entries(itemCount).sort((a,b)=>b[1]-a[1]).slice(0,5);
-        if(topItemsChart) topItemsChart.destroy();
-        const ctxTop = document.getElementById('topItemsChart').getContext('2d');
-        topItemsChart = new Chart(ctxTop, { type:'bar', data:{ labels:top.map(t=>t[0]), datasets:[{ label:'Quantidade', data:top.map(t=>t[1]), backgroundColor:'#f59e0b' }] } });
-        const completed = filtered.filter(o=>o.status==='completed');
-        const totalRev = completed.reduce((s,o)=>s+o.total,0);
-        const avg = completed.length ? totalRev/completed.length : 0;
-        document.getElementById('statsSummary').innerHTML = `<div style="display:flex; gap:1rem;"><div>📦 Total: ${filtered.length}</div><div>✅ Concluídos: ${completed.length}</div><div>💰 Receita: ${formatKz(totalRev)}</div><div>🎟️ Ticket Médio: ${formatKz(avg)}</div></div>`;
-    }
-    async function generatePDF() {
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF({ orientation:'landscape', unit:'mm', format:'a4' });
-        const headerHtml = `<div style="display:flex; align-items:center; gap:12px; background:transparent; border:none;"><img src="${companyData.logo_url||'https://placehold.co/60x60'}" style="width:55px; height:55px; border-radius:50%;"><div><h2 style="font-size:16px; color:#c47b2e;">${escapeHtml(companyData.name)}</h2><p style="font-size:8px;">${escapeHtml(companyData.address)} | WhatsApp: ${companyData.whatsapp}</p></div></div>`;
-        const tempDiv = document.createElement('div'); tempDiv.innerHTML=headerHtml; tempDiv.style.position='absolute'; tempDiv.style.top='-9999px'; tempDiv.style.background='transparent'; tempDiv.style.border='none'; document.body.appendChild(tempDiv);
-        const canvasHeader = await html2canvas(tempDiv, { scale:2, backgroundColor:null }); document.body.removeChild(tempDiv);
-        doc.addImage(canvasHeader.toDataURL('image/png'), 'PNG', 20, 15, 90, 22);
-        doc.setFontSize(10);
-        doc.text(`Período: ${document.getElementById('orderStartDate').value||'início'} a ${document.getElementById('orderEndDate').value||'fim'}`, 20, 48);
-        doc.text(`Gerado: ${new Date().toLocaleString()}`, 20, 55);
-        let y=70;
-        const charts = ['ordersChart','statusChart','categoryRevenueChart','topItemsChart'];
-        for(let i=0;i<charts.length;i++){
-            const canvas = document.getElementById(charts[i]);
-            if(canvas){
-                const imgData = canvas.toDataURL('image/png');
-                const w=65, h=(canvas.height*w)/canvas.width;
-                if(y+h>195){ doc.addPage(); y=20; }
-                doc.addImage(imgData,'PNG',20+(i%2)*95,y,w,h);
-                if(i%2===1) y+=h+10;
-            }
-        }
-        if(currentFilteredOrders.length){
-            doc.addPage();
-            doc.text('📋 Detalhamento dos Pedidos',20,20);
-            let yp=30;
-            for(let idx=0; idx<currentFilteredOrders.length; idx++){
-                const o=currentFilteredOrders[idx];
-                if(yp>170){ doc.addPage(); yp=20; }
-                doc.setFontSize(10);
-                doc.text(`Pedido #${idx+1} - ${new Date(o.date).toLocaleString()}`,20,yp); yp+=6;
-                doc.text(`Cliente: ${o.customer_name}`,25,yp); yp+=5;
-                doc.text(`Endereço: ${o.address||'---'}`,25,yp); yp+=5;
-                doc.text(`Obs: ${o.note||'---'}`,25,yp); yp+=7;
-                doc.setFont(undefined,'bold');
-                doc.text('Item',25,yp); doc.text('Qtd',95,yp); doc.text('Preço',120,yp); doc.text('Subtotal',160,yp);
-                yp+=5;
-                doc.setFont(undefined,'normal');
-                o.items.forEach(item=>{
-                    if(yp>270){ doc.addPage(); yp=20; }
-                    doc.text(item.name.substring(0,30),25,yp);
-                    doc.text(`${item.qty}`,95,yp);
-                    doc.text(formatKz(item.price),120,yp);
-                    doc.text(formatKz(item.price*item.qty),160,yp);
-                    yp+=5;
-                });
-                yp+=3;
-                doc.text(`Total do pedido: ${formatKz(o.total)}`,25,yp);
-                yp+=10;
-            }
-        } else { doc.addPage(); doc.text('Nenhum pedido no período.',20,30); }
-        const pages = doc.internal.getNumberOfPages();
-        for(let i=1; i<=pages; i++){ doc.setPage(i); doc.setFontSize(8); doc.text(`${companyData.address} | WhatsApp: ${companyData.whatsapp}`,20,195); }
-        doc.save(`relatorio_${Date.now()}.pdf`);
+
+        // Freezer
+        document.getElementById('listaFreezer').innerHTML = db.freezer.map(f => `
+            <div style="position:relative;">
+                <img src="${f.image}" style="width:120px; height:120px; border-radius:10px; object-fit:cover;">
+                <button onclick="delFreezer('${f.id}')" style="position:absolute; top:-5px; right:-5px; background:red; padding:5px 8px; border-radius:50%;"><i class="fas fa-times"></i></button>
+            </div>`).join('');
+
+        // Utilizadores (NOVO)
+        document.getElementById('listaUtilizadores').innerHTML = db.utilizadores.map(u => `
+            <div class="list-item">
+                <div><strong><i class="fas fa-user"></i> ${u.name}</strong></div>
+                <button onclick="delUser('${u.id}')" style="background:#dc3545; padding:5px 10px;"><i class="fas fa-trash"></i></button>
+            </div>`).join('');
+
+        // Pedidos & Estatísticas
+        document.getElementById('statTotalPedidos').innerText = db.pedidos.length;
+        document.getElementById('statReceita').innerText = fKz(db.pedidos.reduce((s,p)=>s+p.total, 0));
+        
+        document.getElementById('listaPedidos').innerHTML = db.pedidos.map(p => `
+            <div class="list-item" style="flex-direction:column; align-items:flex-start;">
+                <div style="display:flex; justify-content:space-between; width:100%;">
+                    <strong>${p.customer_name}</strong>
+                    <span style="color:var(--primary-color); font-weight:bold;">${fKz(p.total)}</span>
+                </div>
+                <small>${new Date(p.date).toLocaleString()} | Estado: ${p.status.toUpperCase()}</small>
+                <div style="margin-top:10px;">
+                    <button onclick="updPed('${p.id}','concluido')" style="padding:5px 10px; font-size:0.8rem; background:green;">Concluir</button>
+                    <button onclick="updPed('${p.id}','cancelado')" style="padding:5px 10px; font-size:0.8rem; background:red;">Cancelar</button>
+                </div>
+            </div>`).join('');
     }
 
-    // ============================================================
-    //  LOGIN ADMIN (igual à versão local)
-    // ============================================================
-    async function showAdminLoginModal() {
-        const users = await loadUsers();
-        const select = document.getElementById('loginUserSelect');
-        select.innerHTML = '<option value="">Selecione o utilizador</option>' + users.map(u => `<option value="${u.id}">${escapeHtml(u.name)}</option>`).join('');
-        document.getElementById('adminLoginModal').style.display = 'flex';
-    }
-    async function attemptLogin() {
-        const userId = document.getElementById('loginUserSelect').value;
-        const pass = document.getElementById('loginPass').value.trim();
-        if(!userId) return alert('Selecione um utilizador');
-        const users = await loadUsers();
-        const user = users.find(u=>u.id===userId);
-        if(!user) return alert('Utilizador não encontrado');
-        if(user.password !== pass) return alert('Senha incorreta');
-        currentUser = user;
-        document.getElementById('adminLoginModal').style.display = 'none';
-        document.getElementById('customerView').style.display = 'none';
-        document.getElementById('adminView').style.display = 'block';
-        renderAdmin();
-    }
-    function logoutAdmin() { currentUser = null; document.getElementById('adminView').style.display = 'none'; document.getElementById('customerView').style.display = 'block'; renderCustomer(); }
+    // Ações Admin - Empresa
+    window.saveEmpresa = async () => {
+        let logo = db.empresa.logo;
+        const fi = document.getElementById('empLogo');
+        if(fi.files.length) logo = await getBase64(fi.files[0]);
+        await supabaseClient.from('empresa').upsert({ id: '1', name: document.getElementById('empName').value, address: document.getElementById('empAddress').value, email: document.getElementById('empEmail').value, whatsapp: document.getElementById('empWa').value, logo });
+        alert('Empresa salva!'); loadData();
+    };
 
-    // ============================================================
-    //  INICIALIZAÇÃO
-    // ============================================================
-    window.addEventListener('DOMContentLoaded', async () => {
-        await renderCustomer();
-        document.getElementById('searchInput').addEventListener('input', renderCustomer);
-        document.getElementById('cartFloat').addEventListener('click', ()=>{ renderCartModal(); document.getElementById('cartModal').style.display='flex'; });
-        document.getElementById('closeCartBtn').addEventListener('click', ()=>document.getElementById('cartModal').style.display='none');
-        document.getElementById('sendOrderBtn').addEventListener('click', submitOrder);
-        const adminBtn = document.createElement('div'); adminBtn.className='admin-btn'; adminBtn.innerHTML='<i class="fas fa-lock"></i> Admin'; adminBtn.style.cssText='position:fixed; bottom:20px; left:20px; background:#2d2d3a; color:white; border-radius:40px; padding:8px 16px; cursor:pointer; z-index:99;'; adminBtn.onclick = showAdminLoginModal; document.body.appendChild(adminBtn);
-        document.getElementById('loginSubmitBtn').addEventListener('click', attemptLogin);
-        document.getElementById('loginCancelBtn').addEventListener('click', ()=>document.getElementById('adminLoginModal').style.display='none');
-        document.getElementById('adminLogout').addEventListener('click', logoutAdmin);
-        // Eventos Admin
-        document.getElementById('saveCompanyBtn').addEventListener('click', async () => {
-            if(!currentUser || !(currentUser.role==='admin' || currentUser.permissions?.includes('empresa'))) return alert('Sem permissão');
-            const file = document.getElementById('compLogoUpload').files[0];
-            await saveCompany({
-                name: document.getElementById('compName').value,
-                address: document.getElementById('compAddress').value,
-                email: document.getElementById('compEmail').value,
-                whatsapp: document.getElementById('compWhatsapp').value,
-                logo_url: companyData.logo_url
-            }, file);
-        });
-        document.getElementById('newDishBtn').addEventListener('click', () => { if(!currentUser || !(currentUser.role==='admin' || currentUser.permissions?.includes('cardapio'))) return alert('Sem permissão'); editingDishId=null; document.getElementById('dishName').value=''; document.getElementById('dishDesc').value=''; document.getElementById('dishPrice').value=''; document.getElementById('dishCategory').value='comida'; document.getElementById('dishFeatured').checked=false; document.getElementById('dishImageFile').value=''; document.getElementById('dishImagePreview').innerHTML=''; document.getElementById('dishForm').style.display='block'; document.getElementById('dishFormTitle').innerText='Novo Item'; });
-        document.getElementById('saveDishBtn').addEventListener('click', async () => {
-            if(!currentUser || !(currentUser.role==='admin' || currentUser.permissions?.includes('cardapio'))) return alert('Sem permissão');
-            const name = document.getElementById('dishName').value.trim(); if(!name) return alert('Nome obrigatório');
-            const price = parsePrice(document.getElementById('dishPrice').value); if(price<=0) return alert('Preço inválido');
-            const file = document.getElementById('dishImageFile').files[0];
-            await saveDish({
-                id: editingDishId,
-                name,
-                description: document.getElementById('dishDesc').value,
-                price,
-                category: document.getElementById('dishCategory').value,
-                featured: document.getElementById('dishFeatured').checked,
-                image_url: ''
-            }, file);
-            document.getElementById('dishForm').style.display='none';
-        });
-        document.getElementById('cancelDishBtn').addEventListener('click', ()=>document.getElementById('dishForm').style.display='none');
-        document.getElementById('addFreezerBtn').addEventListener('click', async () => {
-            if(!currentUser || !(currentUser.role==='admin' || currentUser.permissions?.includes('freezer'))) return alert('Sem permissão');
-            const file = document.getElementById('freezerUpload').files[0]; if(!file) return alert('Selecione uma imagem');
-            await addFreezerPhoto(file);
-            document.getElementById('freezerUpload').value='';
-        });
-        document.getElementById('filterOrdersBtn').addEventListener('click', renderOrdersList);
-        document.getElementById('clearOrdersFilter').addEventListener('click', ()=>{ document.getElementById('orderSearchName').value=''; document.getElementById('orderStartDate').value=''; document.getElementById('orderEndDate').value=''; renderOrdersList(); });
-        document.getElementById('exportReportBtn').addEventListener('click', generatePDF);
-        document.getElementById('registerUserBtn').addEventListener('click', () => { if(!currentUser || currentUser.role !== 'admin') return alert('Apenas administrador'); document.getElementById('regName').value=''; document.getElementById('regPass').value=''; document.getElementById('editingUserId').value=''; document.querySelectorAll('#userRegisterModal .perm-checkbox-group input').forEach(cb=>cb.checked=false); document.getElementById('userRegisterModal').style.display='flex'; });
-        document.getElementById('confirmRegBtn').addEventListener('click', async () => {
-            if(!currentUser || currentUser.role !== 'admin') return;
-            const name = document.getElementById('regName').value.trim();
-            const pass = document.getElementById('regPass').value.trim();
-            const perms = Array.from(document.querySelectorAll('#userRegisterModal .perm-checkbox-group input:checked')).map(cb=>cb.value);
-            const editId = document.getElementById('editingUserId').value;
-            await registerUser(name, pass, perms, editId);
-            document.getElementById('userRegisterModal').style.display='none';
-        });
-        document.getElementById('cancelRegBtn').addEventListener('click', ()=>document.getElementById('userRegisterModal').style.display='none');
-        document.getElementById('exportDataBtn').addEventListener('click', async () => {
-            if(!currentUser || currentUser.role !== 'admin') return alert('Sem permissão');
-            const data = { company: companyData, dishes: dishesData, freezer: freezerData, users: usersData, orders: await loadOrders() };
-            const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([JSON.stringify(data)])); a.download = `backup_${Date.now()}.json`; a.click();
-        });
-        document.getElementById('importDataBtn').addEventListener('click', () => { if(!currentUser || currentUser.role !== 'admin') return alert('Sem permissão'); document.getElementById('importFile').click(); });
-        document.getElementById('importFile').addEventListener('change', e => { const file = e.target.files[0]; if(!file) return; const reader = new FileReader(); reader.onload = async ev => { const data = JSON.parse(ev.target.result); if(data.company) await supabase.from('company').upsert(data.company); if(data.dishes) for(let d of data.dishes) await supabase.from('dishes').upsert(d); if(data.freezer) for(let f of data.freezer) await supabase.from('freezer').upsert(f); if(data.users) for(let u of data.users) await supabase.from('users').upsert(u); if(data.orders) for(let o of data.orders) await supabase.from('orders').upsert(o); showToast('Importado! Recarregue.'); location.reload(); }; reader.readAsText(file); });
-        document.getElementById('resetDataBtn').addEventListener('click', () => { if(!currentUser || currentUser.role !== 'admin') return alert('Sem permissão'); if(confirm('Reset padrão? Irá perder todos os dados.')){ localStorage.clear(); location.reload(); } });
-        const goTop = document.getElementById('goTop'); window.addEventListener('scroll', () => { if(window.scrollY>300) goTop.classList.add('show'); else goTop.classList.remove('show'); }); goTop.onclick = () => window.scrollTo({ top:0, behavior:'smooth' });
-    });
+    // Ações Admin - Utilizadores (NOVO)
+    window.saveUser = async () => {
+        const n = document.getElementById('usrName').value;
+        const p = document.getElementById('usrPass').value;
+        if(!n || !p) return alert("Preencha nome e senha.");
+        await supabaseClient.from('utilizadores').insert({ id: Date.now().toString(), name: n, password: p });
+        document.getElementById('usrName').value = ''; document.getElementById('usrPass').value = '';
+        loadData();
+    };
+    window.delUser = async id => { if(confirm('Remover utilizador?')) { await supabaseClient.from('utilizadores').delete().eq('id',id); loadData(); } };
+
+    // Ações Admin - Pratos
+    window.openFormCardapio = () => { editId=null; document.getElementById('formCardapioTitle').innerText='Novo Item'; ['prdName','prdDesc','prdPrice','prdImg'].forEach(id=>document.getElementById(id).value=''); document.getElementById('prdFeatured').checked=false; document.getElementById('formCardapio').style.display='block'; };
+    window.editPrato = id => { const p=db.pratos.find(x=>x.id===id); if(p){ editId=id; document.getElementById('formCardapioTitle').innerText='Editar Item'; document.getElementById('prdName').value=p.name; document.getElementById('prdDesc').value=p.description; document.getElementById('prdPrice').value=p.price; document.getElementById('prdCat').value=p.category; document.getElementById('prdFeatured').checked=p.featured; document.getElementById('formCardapio').style.display='block'; } };
+    window.savePrato = async () => {
+        let img = editId ? db.pratos.find(p=>p.id===editId)?.image : '';
+        const fi = document.getElementById('prdImg');
+        if(fi.files.length) img = await getBase64(fi.files[0]);
+        await supabaseClient.from('pratos').upsert({ id: editId||Date.now().toString(), name: document.getElementById('prdName').value, description: document.getElementById('prdDesc').value, price: Number(document.getElementById('prdPrice').value), category: document.getElementById('prdCat').value, featured: document.getElementById('prdFeatured').checked, image: img });
+        document.getElementById('formCardapio').style.display='none'; loadData();
+    };
+    window.delPrato = async id => { if(confirm('Remover?')) { await supabaseClient.from('pratos').delete().eq('id',id); loadData(); } };
+
+    // Ações Admin - Freezer
+    window.saveFreezer = async () => { const fi=document.getElementById('freezImg'); if(!fi.files.length) return; const img = await getBase64(fi.files[0]); await supabaseClient.from('freezer').insert({id:Date.now().toString(), image:img}); document.getElementById('freezImg').value=''; loadData(); };
+    window.delFreezer = async id => { await supabaseClient.from('freezer').delete().eq('id',id); loadData(); };
+
+    // Ações Admin - Pedidos
+    window.updPed = async (id, st) => { await supabaseClient.from('pedidos').update({status:st}).eq('id',id); loadData(); };
+
+    // Exportação PDF c/ Footers KEBRYKA
+    window.exportPDF = () => {
+        const { jsPDF } = window.jspdf; const doc = new jsPDF();
+        doc.setFontSize(16); doc.text('Relatório de Pedidos', 15, 20);
+        let y=30;
+        db.pedidos.forEach(p => { if(y>260){doc.addPage(); y=20;} doc.setFontSize(10); doc.text(`${p.customer_name} - ${fKz(p.total)} (${p.status})`, 15, y); y+=10; });
+        doc.setFontSize(9); doc.setTextColor(150); doc.text('KEBRYKA, CONSULTORIA FORMAÇÃO E SERVIÇOS, LDA', 15, 285);
+        doc.save('Relatorio_Pedidos_Restaurante.pdf');
+    };
 </script>
 </body>
 </html>
