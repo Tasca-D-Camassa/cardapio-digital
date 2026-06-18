@@ -263,11 +263,12 @@
     let autoSlideInterval = null;
     let chartInstances = {};
     let activeTab = 'tabEmpresa';
+    let lastPedidosUpdate = 0; // timestamp para evitar recálculos desnecessários
 
     const fKz = v => Number(v).toLocaleString('pt-AO', {minimumFractionDigits:2}) + " Kz";
     const getBase64 = file => new Promise((res, rej) => { const r = new FileReader(); r.readAsDataURL(file); r.onload = ()=>res(r.result); r.onerror = e=>rej(e); });
 
-    // --- LOAD DATA ---
+    // --- LOAD DATA (apenas no login e ações manuais) ---
     async function loadData() {
         try {
             const [emp, prt, frz, ped, usr] = await Promise.all([
@@ -317,6 +318,7 @@
         }
     }
 
+    // --- RENDER ALL (apenas para a view cliente e estrutura inicial) ---
     function renderAll() {
         document.getElementById('displayLogo').src = db.empresa.logo || 'https://placehold.co/120x120?text=Logo';
         document.getElementById('displayName').innerText = db.empresa.name || "Meu Restaurante";
@@ -428,7 +430,7 @@
 
     window.modQty = (i, v) => { cart[i].qty += v; if(cart[i].qty<=0) cart.splice(i,1); renderCartUI(); };
 
-    // --- ENVIO DO PEDIDO (WhatsApp) ---
+    // --- ENVIO DO PEDIDO ---
     window.sendOrder = async () => {
         if(!cart.length) return alert('Carrinho vazio.');
         const nome = document.getElementById('cliName').value.trim();
@@ -462,18 +464,66 @@
         cart = []; 
         renderCartUI(); 
         closeModals(); 
-        loadData();
+        // Atualiza apenas os pedidos e estatísticas
+        await refreshPedidos();
         alert('Pedido enviado com sucesso!');
     };
 
-    // --- ELIMINAR PEDIDO (NOVA FUNÇÃO) ---
+    // --- REFRESH PEDIDOS (recarrega apenas pedidos) ---
+    async function refreshPedidos() {
+        const { data, error } = await supabaseClient.from('pedidos').select('*').order('date', {ascending: false});
+        if (!error) {
+            db.pedidos = data || [];
+            if (loggedUser) {
+                filtrarPedidos();
+            }
+        }
+    }
+
+    // --- REFRESH UTILIZADORES ---
+    async function refreshUtilizadores() {
+        const { data, error } = await supabaseClient.from('utilizadores').select('*');
+        if (!error) {
+            db.utilizadores = data || [];
+            if (loggedUser) {
+                renderListaUtilizadores();
+            }
+        }
+    }
+
+    // --- REFRESH PRATOS ---
+    async function refreshPratos() {
+        const { data, error } = await supabaseClient.from('pratos').select('*').order('name');
+        if (!error) {
+            db.pratos = data || [];
+            if (loggedUser) {
+                renderListaCardapio();
+                renderCarousels();
+                renderClientMenu();
+            }
+        }
+    }
+
+    // --- REFRESH FREEZER ---
+    async function refreshFreezer() {
+        const { data, error } = await supabaseClient.from('freezer').select('*');
+        if (!error) {
+            db.freezer = data || [];
+            if (loggedUser) {
+                renderListaFreezer();
+                renderCarousels();
+            }
+        }
+    }
+
+    // --- ELIMINAR PEDIDO ---
     window.deletePedido = async (id) => {
         if (!confirm('Tem certeza que deseja eliminar este pedido permanentemente?')) return;
         try {
             const { error } = await supabaseClient.from('pedidos').delete().eq('id', id);
             if (error) throw error;
             alert('Pedido eliminado com sucesso!');
-            loadData();
+            await refreshPedidos();
         } catch(e) {
             alert('Erro ao eliminar pedido: ' + e.message);
         }
@@ -566,7 +616,7 @@
         }
     }
 
-    // --- POPULATE ADMIN PANEL ---
+    // --- POPULATE ADMIN PANEL (estrutura das abas) ---
     function populateAdminPanel() {
         const currentActive = document.querySelector('.tab.active');
         const currentTarget = currentActive ? currentActive.dataset.target : activeTab;
@@ -689,42 +739,11 @@
             </div>
         `;
 
-        // Popular listas
-        const listaCardapio = document.getElementById('listaCardapio');
-        if(listaCardapio) {
-            listaCardapio.innerHTML = db.pratos.map(p => `
-                <div class="list-item">
-                    <div style="display:flex; align-items:center; gap:15px;">
-                        <img src="${p.image}" style="width:50px; height:50px; border-radius:10px; object-fit:contain; background:#f0f0f0;">
-                        <div><strong>${p.name}</strong><br><small>${fKz(p.price)}</small></div>
-                    </div>
-                    <div>
-                        <button class="btn-outline" onclick="editPrato('${p.id}')" style="padding:5px 10px;"><i class="fas fa-edit"></i></button>
-                        <button onclick="delPrato('${p.id}')" style="background:#dc3545; padding:5px 10px;"><i class="fas fa-trash"></i></button>
-                    </div>
-                </div>`).join('');
-        }
-
-        const listaFreezer = document.getElementById('listaFreezer');
-        if(listaFreezer) {
-            listaFreezer.innerHTML = db.freezer.map(f => `
-                <div style="position:relative;">
-                    <img src="${f.image}" style="width:120px; height:120px; border-radius:10px; object-fit:contain; background:#f0f0f0;">
-                    <button onclick="delFreezer('${f.id}')" style="position:absolute; top:-5px; right:-5px; background:red; padding:5px 8px; border-radius:50%;"><i class="fas fa-times"></i></button>
-                </div>`).join('');
-        }
-
-        const listaUtilizadores = document.getElementById('listaUtilizadores');
-        if(listaUtilizadores) {
-            listaUtilizadores.innerHTML = db.utilizadores.map(u => `
-                <div class="list-item">
-                    <div><strong><i class="fas fa-user"></i> ${u.name}</strong> <span style="color:#777; font-size:0.8rem;">(${u.role || 'funcionario'})</span></div>
-                    <div>
-                        ${u.id === 'admin' ? '<span style="color:#C17225; font-weight:bold;">Fixo</span>' : 
-                        `<button onclick="delUser('${u.id}')" style="background:#dc3545; padding:5px 10px;"><i class="fas fa-trash"></i></button>`}
-                    </div>
-                </div>`).join('');
-        }
+        // Renderizar listas iniciais
+        renderListaCardapio();
+        renderListaFreezer();
+        renderListaUtilizadores();
+        filtrarPedidos();
 
         // Restaurar aba ativa
         if (currentTarget) {
@@ -738,14 +757,52 @@
                 activeTab = currentTarget;
             }
         }
-
-        filtrarPedidos();
     }
 
-    // --- FILTRO E GRÁFICOS ---
+    // --- RENDER LISTAS (renderizações parciais) ---
+    function renderListaCardapio() {
+        const lista = document.getElementById('listaCardapio');
+        if (!lista) return;
+        lista.innerHTML = db.pratos.map(p => `
+            <div class="list-item">
+                <div style="display:flex; align-items:center; gap:15px;">
+                    <img src="${p.image}" style="width:50px; height:50px; border-radius:10px; object-fit:contain; background:#f0f0f0;">
+                    <div><strong>${p.name}</strong><br><small>${fKz(p.price)}</small></div>
+                </div>
+                <div>
+                    <button class="btn-outline" onclick="editPrato('${p.id}')" style="padding:5px 10px;"><i class="fas fa-edit"></i></button>
+                    <button onclick="delPrato('${p.id}')" style="background:#dc3545; padding:5px 10px;"><i class="fas fa-trash"></i></button>
+                </div>
+            </div>`).join('');
+    }
+
+    function renderListaFreezer() {
+        const lista = document.getElementById('listaFreezer');
+        if (!lista) return;
+        lista.innerHTML = db.freezer.map(f => `
+            <div style="position:relative;">
+                <img src="${f.image}" style="width:120px; height:120px; border-radius:10px; object-fit:contain; background:#f0f0f0;">
+                <button onclick="delFreezer('${f.id}')" style="position:absolute; top:-5px; right:-5px; background:red; padding:5px 8px; border-radius:50%;"><i class="fas fa-times"></i></button>
+            </div>`).join('');
+    }
+
+    function renderListaUtilizadores() {
+        const lista = document.getElementById('listaUtilizadores');
+        if (!lista) return;
+        lista.innerHTML = db.utilizadores.map(u => `
+            <div class="list-item">
+                <div><strong><i class="fas fa-user"></i> ${u.name}</strong> <span style="color:#777; font-size:0.8rem;">(${u.role || 'funcionario'})</span></div>
+                <div>
+                    ${u.id === 'admin' ? '<span style="color:#C17225; font-weight:bold;">Fixo</span>' : 
+                    `<button onclick="delUser('${u.id}')" style="background:#dc3545; padding:5px 10px;"><i class="fas fa-trash"></i></button>`}
+                </div>
+            </div>`).join('');
+    }
+
+    // --- FILTRO PEDIDOS (com cache) ---
     function filtrarPedidos() {
-        const ini = document.getElementById('filterDateIni').value;
-        const fim = document.getElementById('filterDateFim').value;
+        const ini = document.getElementById('filterDateIni')?.value || '';
+        const fim = document.getElementById('filterDateFim')?.value || '';
         let pedidosFiltrados = db.pedidos;
         if (ini) {
             const d = new Date(ini+'T00:00:00');
@@ -765,47 +822,56 @@
         }, 0);
         const receitaTotal = pedidosFiltrados.reduce((s, p) => s + (p.total || 0), 0);
 
-        document.getElementById('statsContainer').innerHTML = `
-            <div class="stat-card"><h4>Total de Pedidos</h4><div class="value">${totalPedidos}</div></div>
-            <div class="stat-card"><h4>Quantidade de Artigos Pedidos</h4><div class="value">${totalItens}</div></div>
-            <div class="stat-card"><h4>Total da Receita</h4><div class="value">${fKz(receitaTotal)}</div></div>
-        `;
-
-        // Lista de pedidos com botão eliminar
-        const lista = document.getElementById('listaPedidos');
-        lista.innerHTML = pedidosFiltrados.map(p => {
-            const items = p.items || [];
-            let detalhes = items.map(item => `
-                <tr>
-                    <td>${item.name}</td>
-                    <td>${item.qty}</td>
-                    <td>${fKz(item.price)}</td>
-                    <td>${fKz(item.price * item.qty)}</td>
-                </tr>
-            `).join('');
-            return `
-                <div class="list-item" style="flex-direction:column; align-items:flex-start; border-bottom: 2px solid #eee; padding: 1rem 0;">
-                    <div style="display:flex; justify-content:space-between; width:100%; margin-bottom: 8px;">
-                        <strong>${p.customer_name}</strong>
-                        <span style="color:var(--primary-color); font-weight:bold;">${fKz(p.total)}</span>
-                    </div>
-                    <div style="display:flex; align-items:center; flex-wrap:wrap;">
-                        <small>${new Date(p.date).toLocaleString()}</small>
-                        <button onclick="deletePedido('${p.id}')" class="btn-eliminar"><i class="fas fa-trash"></i> Eliminar</button>
-                    </div>
-                    <div class="pedido-detalhes" style="width:100%; margin-top: 8px;">
-                        <table>
-                            <thead>
-                                <tr><th>Artigo</th><th>Qtd</th><th>Preço Unit.</th><th>Subtotal</th></tr>
-                            </thead>
-                            <tbody>${detalhes}</tbody>
-                        </table>
-                    </div>
-                </div>
+        const statsContainer = document.getElementById('statsContainer');
+        if (statsContainer) {
+            statsContainer.innerHTML = `
+                <div class="stat-card"><h4>Total de Pedidos</h4><div class="value">${totalPedidos}</div></div>
+                <div class="stat-card"><h4>Quantidade de Artigos Pedidos</h4><div class="value">${totalItens}</div></div>
+                <div class="stat-card"><h4>Total da Receita</h4><div class="value">${fKz(receitaTotal)}</div></div>
             `;
-        }).join('');
+        }
 
-        atualizarGraficos(pedidosFiltrados);
+        const lista = document.getElementById('listaPedidos');
+        if (lista) {
+            lista.innerHTML = pedidosFiltrados.map(p => {
+                const items = p.items || [];
+                let detalhes = items.map(item => `
+                    <tr>
+                        <td>${item.name}</td>
+                        <td>${item.qty}</td>
+                        <td>${fKz(item.price)}</td>
+                        <td>${fKz(item.price * item.qty)}</td>
+                    </tr>
+                `).join('');
+                return `
+                    <div class="list-item" style="flex-direction:column; align-items:flex-start; border-bottom: 2px solid #eee; padding: 1rem 0;">
+                        <div style="display:flex; justify-content:space-between; width:100%; margin-bottom: 8px;">
+                            <strong>${p.customer_name}</strong>
+                            <span style="color:var(--primary-color); font-weight:bold;">${fKz(p.total)}</span>
+                        </div>
+                        <div style="display:flex; align-items:center; flex-wrap:wrap;">
+                            <small>${new Date(p.date).toLocaleString()}</small>
+                            <button onclick="deletePedido('${p.id}')" class="btn-eliminar"><i class="fas fa-trash"></i> Eliminar</button>
+                        </div>
+                        <div class="pedido-detalhes" style="width:100%; margin-top: 8px;">
+                            <table>
+                                <thead>
+                                    <tr><th>Artigo</th><th>Qtd</th><th>Preço Unit.</th><th>Subtotal</th></tr>
+                                </thead>
+                                <tbody>${detalhes}</tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Atualizar gráficos apenas se os dados mudaram
+        const now = Date.now();
+        if (now - lastPedidosUpdate > 5000) {
+            atualizarGraficos(pedidosFiltrados);
+            lastPedidosUpdate = now;
+        }
     }
 
     window.limparFiltroPedidos = () => {
@@ -902,7 +968,6 @@
         if (header) header.remove();
         const pdfBtn = content.querySelector('.btn-outline');
         if (pdfBtn) pdfBtn.remove();
-        // Remove todos os botões (incluindo os de eliminar)
         content.querySelectorAll('button').forEach(b => b.remove());
 
         const wrapper = document.createElement('div');
@@ -973,12 +1038,17 @@
         const fi = document.getElementById('empLogo');
         if(fi.files.length) logo = await getBase64(fi.files[0]);
         await supabaseClient.from('empresa').upsert({ id: '1', name: document.getElementById('empName').value, address: document.getElementById('empAddress').value, email: document.getElementById('empEmail').value, whatsapp: document.getElementById('empWa').value, logo });
-        alert('Empresa salva!'); loadData();
+        alert('Empresa salva!'); 
+        // Recarregar dados da empresa
+        const { data } = await supabaseClient.from('empresa').select('*').single();
+        if (data) db.empresa = data;
+        renderAll();
     };
 
     window.openFormCardapio = () => { editId=null; document.getElementById('formCardapioTitle').innerText='Novo Item'; ['prdName','prdDesc','prdPrice','prdImg'].forEach(id=>document.getElementById(id).value=''); document.getElementById('prdFeatured').checked=false; document.getElementById('formCardapio').style.display='block'; };
     window.editPrato = id => { const p=db.pratos.find(x=>x.id===id); if(p){ editId=id; document.getElementById('formCardapioTitle').innerText='Editar Item'; document.getElementById('prdName').value=p.name; document.getElementById('prdDesc').value=p.description; document.getElementById('prdPrice').value=p.price; document.getElementById('prdCat').value=p.category; document.getElementById('prdFeatured').checked=p.featured; document.getElementById('formCardapio').style.display='block'; } };
     
+    // CORREÇÃO: savePrato com feedback e sem recarregar tudo
     window.savePrato = async () => {
         try {
             const name = document.getElementById('prdName').value.trim();
@@ -1009,19 +1079,32 @@
 
             alert(editId ? 'Artigo atualizado com sucesso!' : 'Artigo adicionado com sucesso!');
             document.getElementById('formCardapio').style.display = 'none';
-            loadData();
+            // Atualiza apenas os pratos
+            await refreshPratos();
+            // Atualiza carrossel e menu cliente
+            renderCarousels();
+            renderClientMenu();
         } catch (e) {
             alert('Erro ao guardar artigo: ' + e.message);
         }
     };
 
-    window.delPrato = async id => { if(confirm('Remover?')) { await supabaseClient.from('pratos').delete().eq('id',id); loadData(); } };
+    window.delPrato = async id => { if(confirm('Remover?')) { await supabaseClient.from('pratos').delete().eq('id',id); await refreshPratos(); renderCarousels(); renderClientMenu(); } };
 
-    window.saveFreezer = async () => { const fi=document.getElementById('freezImg'); if(!fi.files.length) return; const img = await getBase64(fi.files[0]); await supabaseClient.from('freezer').insert({id:Date.now().toString(), image:img}); document.getElementById('freezImg').value=''; loadData(); };
-    window.delFreezer = async id => { await supabaseClient.from('freezer').delete().eq('id',id); loadData(); };
+    window.saveFreezer = async () => { 
+        const fi=document.getElementById('freezImg'); 
+        if(!fi.files.length) return; 
+        const img = await getBase64(fi.files[0]); 
+        await supabaseClient.from('freezer').insert({id:Date.now().toString(), image:img}); 
+        document.getElementById('freezImg').value=''; 
+        await refreshFreezer();
+        renderCarousels();
+    };
+    window.delFreezer = async id => { await supabaseClient.from('freezer').delete().eq('id',id); await refreshFreezer(); renderCarousels(); };
 
-    window.updPed = async (id, st) => { await supabaseClient.from('pedidos').update({status:st}).eq('id',id); loadData(); };
+    window.updPed = async (id, st) => { await supabaseClient.from('pedidos').update({status:st}).eq('id',id); await refreshPedidos(); };
 
+    // CORREÇÃO: saveUser com atualização instantânea da lista
     window.saveUser = async () => {
         const n = document.getElementById('usrName').value.trim();
         const p = document.getElementById('usrPass').value.trim();
@@ -1040,7 +1123,9 @@
             alert('Utilizador criado com sucesso!');
             document.getElementById('usrName').value = '';
             document.getElementById('usrPass').value = '';
-            loadData();
+            await refreshUtilizadores();
+            // Atualiza também a lista de login
+            populateLoginSelect();
         } catch(e) {
             alert('Erro ao criar utilizador: ' + e.message);
         }
@@ -1050,9 +1135,20 @@
         if(id === 'admin') return alert('O utilizador administrador não pode ser removido.');
         if(confirm('Remover utilizador?')) { 
             await supabaseClient.from('utilizadores').delete().eq('id',id); 
-            loadData(); 
+            await refreshUtilizadores();
+            populateLoginSelect();
         }
     };
+
+    // Função auxiliar para popular o select de login
+    function populateLoginSelect() {
+        const sel = document.getElementById('loginUser');
+        if (sel) {
+            sel.innerHTML = db.utilizadores.length 
+                ? db.utilizadores.map(u => `<option value="${u.id}">${u.name}</option>`).join('')
+                : `<option value="">Nenhum utilizador</option>`;
+        }
+    }
 
     // --- MANUTENÇÃO ---
     window.exportarDados = () => {
@@ -1091,7 +1187,8 @@
             await supabaseClient.from('utilizadores').delete().neq('id', 'admin');
             if (users.length) await supabaseClient.from('utilizadores').insert(users);
             alert('Dados importados com sucesso!');
-            loadData();
+            // Recarregar tudo
+            await loadData();
         } catch(e) {
             alert('Erro na importação: ' + e.message);
         }
@@ -1110,7 +1207,7 @@
                 await supabaseClient.from('utilizadores').delete().neq('id', 'admin');
                 await supabaseClient.from('empresa').upsert({ id: '1', name: 'Meu Restaurante', address: '', email: '', whatsapp: '', logo: '' });
                 alert('Base de dados restaurada ao estado padrão.');
-                loadData();
+                await loadData();
             }
         };
         document.getElementById('modalConfirm').style.display = 'flex';
@@ -1122,14 +1219,12 @@
     };
 
     // --- INICIALIZAÇÃO ---
-    window.onload = () => {
-        loadData();
+    window.onload = async () => {
+        await loadData();
+        populateLoginSelect();
 
         document.getElementById('btnOpenLogin').onclick = () => {
-            const sel = document.getElementById('loginUser');
-            sel.innerHTML = db.utilizadores.length 
-                ? db.utilizadores.map(u => `<option value="${u.id}">${u.name}</option>`).join('')
-                : `<option value="">Nenhum utilizador</option>`;
+            populateLoginSelect();
             document.getElementById('modalLogin').style.display = 'flex';
         };
 
@@ -1145,15 +1240,7 @@
         });
     };
 
-    setInterval(() => {
-        if (loggedUser) {
-            const activeTabEl = document.querySelector('.tab.active');
-            if (activeTabEl) activeTab = activeTabEl.dataset.target;
-            loadData();
-        } else {
-            loadData();
-        }
-    }, 30000);
+    // Não usamos setInterval para evitar recarregamentos indesejados
 </script>
 </body>
 </html>
