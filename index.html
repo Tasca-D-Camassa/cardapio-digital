@@ -8,101 +8,122 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         :root {
-            --bg-color: #FAF6F0; /* Fundo creme das imagens */
-            --primary-color: #C17225; /* Laranja/Castanho principal */
-            --dark-color: #2F323A; /* Botão Admin escuro */
+            --bg-color: #FAF6F0;
+            --primary-color: #C17225;
+            --dark-color: #2F323A;
             --text-color: #333333;
-            --card-bg: #F2EBE1; /* Fundo das áreas de destaque */
+            --card-bg: #F2EBE1;
         }
-        
         * { margin:0; padding:0; box-sizing:border-box; font-family:'Inter', sans-serif; }
         body { background: var(--bg-color); color: var(--text-color); min-height: 100vh; display: flex; flex-direction: column; }
         .container { max-width: 1300px; margin: 0 auto; padding: 2rem 1.5rem; flex: 1; width: 100%; }
-        
         h2 { font-size: 1.6rem; color: var(--primary-color); margin-bottom: 1.5rem; display: flex; align-items: center; gap: 10px; }
-        
         input, textarea, select { width: 100%; padding: 0.8rem 1.2rem; border: 1px solid #ddd; border-radius: 30px; font-size: 1rem; margin-bottom: 15px; outline: none; }
         input:focus, select:focus { border-color: var(--primary-color); }
-        
         button { background: var(--primary-color); color: white; border: none; padding: 0.8rem 1.5rem; border-radius: 30px; font-weight: 600; cursor: pointer; transition: 0.3s; }
         button:hover { filter: brightness(1.1); transform: translateY(-2px); }
         .btn-outline { background: transparent; border: 2px solid var(--primary-color); color: var(--primary-color); }
         .btn-outline:hover { background: var(--primary-color); color: white; }
+        .btn-danger { background: #dc3545; }
+        .btn-danger:hover { background: #b02a37; }
 
-        /* HEADER CLIENTE */
         .restaurant-header { display: flex; align-items: center; gap: 2rem; margin-bottom: 2rem; }
         .logo-area { width: 120px; height: 120px; flex-shrink: 0; }
         .logo-img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; box-shadow: 0 4px 15px rgba(0,0,0,0.1); border: 4px solid white; background: #000; }
         .company-info-central { flex: 1; text-align: center; }
         .company-info-central h1 { font-size: 2.2rem; color: var(--primary-color); margin-bottom: 0.5rem; font-weight: 800; }
-        .contact-info { display: flex; justify-content: center; gap: 1.5rem; font-size: 0.95rem; font-weight: 600; color: #555; }
+        .contact-info { display: flex; justify-content: center; gap: 1.5rem; font-size: 0.95rem; font-weight: 600; color: #555; flex-wrap: wrap; }
         .contact-info i { color: var(--primary-color); }
 
         .search-container { text-align: center; margin-bottom: 3rem; }
         .search-container input { max-width: 600px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
 
-        /* CARROSSÉIS (Igual à Imagem 1) */
         .carousels-wrapper { display: flex; gap: 2rem; margin-bottom: 3rem; flex-wrap: wrap; }
         .carousel-section { flex: 1; min-width: 320px; background: var(--card-bg); border-radius: 20px; padding: 2rem; text-align: center; }
         .carousel-section h2 { justify-content: center; font-size: 1.4rem; }
-        .carousel-container { position: relative; width: 100%; overflow: hidden; border-radius: 15px; margin-top: 1rem; }
+        .carousel-container { position: relative; width: 100%; overflow: hidden; border-radius: 15px; margin-top: 1rem; background: #f0f0f0; }
         .carousel-track { display: flex; transition: transform 0.5s ease-in-out; }
-        .carousel-slide { min-width: 100%; height: 280px; position: relative; }
-        .carousel-slide img { width: 100%; height: 100%; object-fit: cover; border-radius: 15px; }
+        .carousel-slide { min-width: 100%; height: 280px; display: flex; justify-content: center; align-items: center; background: #f0f0f0; }
+        .carousel-slide img { width: 100%; height: 100%; object-fit: contain; background: #f0f0f0; }
         .carousel-caption { position: absolute; bottom: 0; left: 0; width: 100%; background: rgba(0,0,0,0.6); color: white; padding: 10px; font-weight: bold; border-bottom-left-radius: 15px; border-bottom-right-radius: 15px; }
         .nav-btn { position: absolute; top: 50%; transform: translateY(-50%); background: var(--primary-color); color: white; border: none; width: 40px; height: 40px; border-radius: 50%; font-size: 1.2rem; cursor: pointer; z-index: 10; display: flex; justify-content: center; align-items: center; box-shadow: 0 4px 8px rgba(0,0,0,0.2); }
         .nav-btn:hover { background: #a6611e; }
         .nav-left { left: 10px; }
         .nav-right { right: 10px; }
 
-        /* GRELHA PRODUTOS */
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 2rem; margin-bottom: 3rem; }
         .card { background: white; border-radius: 20px; overflow: hidden; box-shadow: 0 5px 15px rgba(0,0,0,0.05); transition: 0.3s; display: flex; flex-direction: column; }
         .card:hover { transform: translateY(-5px); box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
-        .card-img { width: 100%; height: 200px; object-fit: cover; }
+        .card-img { width: 100%; height: 200px; object-fit: contain; background: #f0f0f0; }
         .card-body { padding: 1.5rem; flex: 1; display: flex; flex-direction: column; }
         .card-title { font-size: 1.2rem; font-weight: 700; margin-bottom: 0.5rem; }
         .card-price { color: var(--primary-color); font-size: 1.4rem; font-weight: 800; margin: auto 0 1rem 0; }
 
-        /* BOTÕES FLUTUANTES (Imagens 1 e 3) */
         .admin-btn { position: fixed; bottom: 20px; left: 20px; background: var(--dark-color); color: white; padding: 10px 20px; border-radius: 30px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 8px; z-index: 100; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
         .admin-btn:hover { background: #1a1c22; }
-        
         .cart-btn { position: fixed; bottom: 20px; right: 20px; background: var(--primary-color); width: 60px; height: 60px; border-radius: 50%; display: flex; justify-content: center; align-items: center; color: white; font-size: 1.8rem; cursor: pointer; z-index: 100; box-shadow: 0 5px 15px rgba(193, 114, 37, 0.4); transition: 0.3s; }
         .cart-btn:hover { transform: scale(1.05); }
         .cart-badge { position: absolute; top: -5px; right: -5px; background: #FFC107; color: black; font-size: 0.8rem; font-weight: bold; width: 22px; height: 22px; border-radius: 50%; display: flex; justify-content: center; align-items: center; border: 2px solid var(--bg-color); }
 
-        /* MODAIS */
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); backdrop-filter: blur(5px); z-index: 1000; justify-content: center; align-items: center; }
-        .modal-content { background: var(--bg-color); width: 90%; max-width: 500px; padding: 2.5rem; border-radius: 30px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+        .modal-content { background: var(--bg-color); width: 90%; max-width: 500px; padding: 2.5rem; border-radius: 30px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.3); max-height: 90vh; overflow-y: auto; }
         .modal-content h3 { color: var(--text-color); margin-bottom: 1.5rem; display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 1.4rem; }
-        .modal-actions { display: flex; gap: 1rem; margin-top: 1.5rem; }
+        .modal-actions { display: flex; gap: 1rem; margin-top: 1.5rem; flex-wrap: wrap; }
         .modal-actions button { flex: 1; }
 
-        /* PAINEL ADMINISTRATIVO (Imagem 3) */
-        .admin-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
-        .admin-title { font-size: 2rem; color: var(--primary-color); border-left: 6px solid var(--primary-color); padding-left: 15px; margin: 0; display: inline-block;}
-        
-        .admin-tabs { display: flex; gap: 1rem; border-bottom: 2px solid #ddd; padding-bottom: 10px; margin-bottom: 2rem; flex-wrap: wrap; }
-        .tab { padding: 10px 20px; font-weight: 700; color: #777; cursor: pointer; border-radius: 20px; transition: 0.3s; display: flex; align-items: center; gap: 8px; }
+        .admin-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; }
+        .admin-title { font-size: 2rem; color: var(--primary-color); border-left: 6px solid var(--primary-color); padding-left: 15px; margin: 0; display: inline-block; }
+        .admin-tabs { display: flex; gap: 0.5rem; border-bottom: 2px solid #ddd; padding-bottom: 10px; margin-bottom: 2rem; flex-wrap: wrap; }
+        .tab { padding: 8px 16px; font-weight: 700; color: #777; cursor: pointer; border-radius: 20px; transition: 0.3s; display: flex; align-items: center; gap: 6px; font-size: 0.9rem; }
         .tab.active { background: var(--primary-color); color: white; }
         .tab:hover:not(.active) { background: #eee; }
         .tab-content { display: none; background: white; padding: 2rem; border-radius: 20px; box-shadow: 0 5px 20px rgba(0,0,0,0.05); }
         .tab-content.active { display: block; }
 
-        .list-item { display: flex; justify-content: space-between; align-items: center; padding: 1rem; border-bottom: 1px solid #eee; }
+        .list-item { display: flex; justify-content: space-between; align-items: center; padding: 1rem; border-bottom: 1px solid #eee; flex-wrap: wrap; }
         .list-item:last-child { border-bottom: none; }
-        
-        .stat-card { background: var(--bg-color); padding: 1.5rem; border-radius: 15px; border-left: 5px solid var(--primary-color); margin-bottom: 1rem; }
 
-        footer { text-align: center; padding: 2rem; font-size: 0.9rem; color: #777; border-top: 1px solid #ddd; margin-top: 2rem; background: white; }
+        .stat-cards { display: flex; flex-wrap: wrap; gap: 1rem; margin-bottom: 2rem; }
+        .stat-card { background: var(--bg-color); padding: 1.5rem; border-radius: 15px; border-left: 5px solid var(--primary-color); flex: 1; min-width: 150px; }
+        .stat-card h4 { color: #777; font-size: 0.9rem; margin-bottom: 0.3rem; }
+        .stat-card .value { font-size: 1.8rem; font-weight: bold; color: var(--primary-color); }
+
+        .chart-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 2rem; margin-bottom: 2rem; }
+        .chart-box { background: white; padding: 1rem; border-radius: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .chart-box canvas { max-height: 250px; max-width: 100%; }
+
+        .filter-row { display: flex; gap: 1rem; align-items: flex-end; flex-wrap: wrap; margin-bottom: 2rem; }
+        .filter-row .form-group { flex: 1; min-width: 150px; }
+        .filter-row label { display: block; font-weight: 600; margin-bottom: 5px; font-size: 0.9rem; }
+        .filter-row input { margin-bottom: 0; }
+
+        .pedido-detalhes { background: #f9f9f9; padding: 10px; border-radius: 10px; margin-top: 8px; font-size: 0.9rem; }
+        .pedido-detalhes table { width: 100%; border-collapse: collapse; }
+        .pedido-detalhes td { padding: 4px 8px; border-bottom: 1px solid #eee; }
+        .pedido-detalhes th { text-align: left; padding: 4px 8px; background: #eee; }
+
+        .permissoes-checkbox { display: flex; flex-wrap: wrap; gap: 1rem; margin: 1rem 0; }
+        .permissoes-checkbox label { display: flex; align-items: center; gap: 5px; font-weight: normal; }
+
+        /* Rodapé em duas linhas com fonte pequena */
+        footer { text-align: center; padding: 0.8rem 1rem; font-size: 0.55rem; color: #777; border-top: 1px solid #ddd; margin-top: 2rem; background: white; line-height: 1.5; }
+        footer .linha1 { font-weight: 600; font-size: 0.6rem; }
+        footer .linha2 { font-size: 0.5rem; }
 
         @media (max-width: 768px) {
             .restaurant-header { flex-direction: column; text-align: center; }
             .company-info-central h1 { font-size: 1.8rem; }
             .carousels-wrapper { flex-direction: column; }
+            .filter-row { flex-direction: column; }
+            .admin-tabs .tab { font-size: 0.8rem; padding: 6px 12px; }
+            .chart-grid { grid-template-columns: 1fr; }
+            footer { font-size: 0.45rem; }
+            footer .linha1 { font-size: 0.5rem; }
+            footer .linha2 { font-size: 0.4rem; }
         }
     </style>
 </head>
@@ -114,6 +135,7 @@
     <div class="cart-badge" id="cartCount">0</div>
 </div>
 
+<!-- VIEW CLIENTE -->
 <div id="customerView" class="container">
     <div class="restaurant-header">
         <div class="logo-area"><img id="displayLogo" src="" class="logo-img" alt="Logo"></div>
@@ -132,7 +154,7 @@
     </div>
 
     <div class="carousels-wrapper">
-        <div class="carousel-section">
+        <div class="carousel-section" id="carouselFeatured">
             <h2><i class="fas fa-star"></i> Pratos da Casa</h2>
             <div class="carousel-container">
                 <button class="nav-btn nav-left" onclick="slideCarousel('featured', -1)"><i class="fas fa-chevron-left"></i></button>
@@ -140,7 +162,7 @@
                 <button class="nav-btn nav-right" onclick="slideCarousel('featured', 1)"><i class="fas fa-chevron-right"></i></button>
             </div>
         </div>
-        <div class="carousel-section">
+        <div class="carousel-section" id="carouselFreezer">
             <h2><i class="fas fa-camera"></i> Freezer da Semana</h2>
             <div class="carousel-container">
                 <button class="nav-btn nav-left" onclick="slideCarousel('freezer', -1)"><i class="fas fa-chevron-left"></i></button>
@@ -152,129 +174,38 @@
 
     <h2><i class="fas fa-utensils"></i> Comidas</h2>
     <div id="gridComidas" class="grid"></div>
-    
     <h2><i class="fas fa-mug-hot"></i> Bebidas</h2>
     <div id="gridBebidas" class="grid"></div>
-    
     <h2><i class="fas fa-ice-cream"></i> Sobremesas</h2>
     <div id="gridSobremesas" class="grid"></div>
 </div>
 
+<!-- VIEW ADMIN -->
 <div id="adminView" class="container" style="display: none;">
     <div class="admin-header">
         <h1 class="admin-title">Painel Administrativo</h1>
-        <button onclick="logoutAdmin()" style="background: #C17225; padding: 0.5rem 1.5rem; border-radius: 20px;">Sair</button>
-    </div>
-
-    <div class="admin-tabs">
-        <div class="tab active" data-target="tabEmpresa"><i class="fas fa-store"></i> Empresa</div>
-        <div class="tab" data-target="tabCardapio"><i class="fas fa-utensils"></i> Cardápio</div>
-        <div class="tab" data-target="tabFreezer"><i class="fas fa-camera"></i> Freezer</div>
-        <div class="tab" data-target="tabPedidos"><i class="fas fa-box"></i> Pedidos & Estatísticas</div>
-        <div class="tab" data-target="tabUtilizadores"><i class="fas fa-users"></i> Utilizadores</div>
-        <div class="tab" data-target="tabManutencao"><i class="fas fa-tools"></i> Manutenção</div>
-    </div>
-
-    <div id="tabEmpresa" class="tab-content active">
-        <h3>Dados da Empresa</h3>
-        <input type="text" id="empName" placeholder="Nome do Restaurante">
-        <div style="margin-bottom: 15px;">
-            <label style="font-weight: 600; display:block; margin-bottom: 5px;">Logótipo:</label>
-            <input type="file" id="empLogo" accept="image/*" style="border: 1px solid #ddd; padding: 10px; border-radius: 10px;">
-        </div>
-        <input type="text" id="empAddress" placeholder="Endereço">
-        <input type="email" id="empEmail" placeholder="Email de contacto">
-        <input type="text" id="empWa" placeholder="WhatsApp (Ex: 2449...)">
-        <button onclick="saveEmpresa()">Salvar Empresa</button>
-    </div>
-
-    <div id="tabCardapio" class="tab-content">
-        <div style="display:flex; justify-content:space-between; margin-bottom: 1.5rem;">
-            <h3>Gestão de Estoque / Cardápio</h3>
-            <button onclick="openFormCardapio()">+ Adicionar Item</button>
-        </div>
-        
-        <div id="formCardapio" style="display:none; background: #f9f9f9; padding: 20px; border-radius: 15px; margin-bottom: 20px; border: 1px solid #eee;">
-            <h4 id="formCardapioTitle" style="margin-bottom: 10px;">Novo Item</h4>
-            <input type="text" id="prdName" placeholder="Nome">
-            <textarea id="prdDesc" placeholder="Descrição"></textarea>
-            <input type="number" id="prdPrice" placeholder="Preço (Kz)">
-            <select id="prdCat">
-                <option value="comida">Comida</option>
-                <option value="bebida">Bebida</option>
-                <option value="sobremesa">Sobremesa</option>
-            </select>
-            <input type="file" id="prdImg" accept="image/*" style="border:1px solid #ddd; padding:10px; border-radius:10px; margin-bottom:15px;">
-            <label style="display:block; margin-bottom: 15px;">
-                <input type="checkbox" id="prdFeatured"> Destacar (Pratos da Casa)
-            </label>
-            <button onclick="savePrato()">Guardar</button>
-            <button class="btn-outline" onclick="document.getElementById('formCardapio').style.display='none'">Cancelar</button>
-        </div>
-        
-        <div id="listaCardapio"></div>
-    </div>
-
-    <div id="tabFreezer" class="tab-content">
-        <h3>Freezer da Semana</h3>
-        <p style="margin-bottom: 15px; color:#666;">Adicione fotos do expositor ou do ambiente.</p>
-        <input type="file" id="freezImg" accept="image/*" style="border:1px solid #ddd; padding:10px; border-radius:10px; margin-bottom:15px;">
-        <button onclick="saveFreezer()">Adicionar Foto</button>
-        <div id="listaFreezer" style="display:flex; flex-wrap:wrap; gap:15px; margin-top:20px;"></div>
-    </div>
-
-    <div id="tabPedidos" class="tab-content">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 1.5rem;">
-            <h3>Controlo de Encomendas</h3>
-            <button class="btn-outline" onclick="exportPDF()"><i class="fas fa-file-pdf"></i> Exportar Relatório</button>
-        </div>
-        
-        <div style="display: flex; gap: 1rem; margin-bottom: 2rem;">
-            <div class="stat-card" style="flex:1;">
-                <h4 style="color:#777; font-size:0.9rem;">Total de Pedidos</h4>
-                <div id="statTotalPedidos" style="font-size:1.8rem; font-weight:bold; color:var(--primary-color);">0</div>
-            </div>
-            <div class="stat-card" style="flex:1;">
-                <h4 style="color:#777; font-size:0.9rem;">Receita Estimada</h4>
-                <div id="statReceita" style="font-size:1.8rem; font-weight:bold; color:var(--primary-color);">0 Kz</div>
-            </div>
-        </div>
-
-        <div id="listaPedidos"></div>
-    </div>
-
-    <div id="tabUtilizadores" class="tab-content">
-        <h3>Gestão de Acessos</h3>
-        <div style="background: #f9f9f9; padding: 20px; border-radius: 15px; margin-bottom: 20px; border: 1px solid #eee;">
-            <input type="text" id="usrName" placeholder="Nome do Utilizador">
-            <input type="password" id="usrPass" placeholder="Palavra-passe">
-            <button onclick="saveUser()">Adicionar Utilizador</button>
-        </div>
-        <div id="listaUtilizadores"></div>
-    </div>
-
-    <div id="tabManutencao" class="tab-content">
-        <h3>Manutenção do Sistema</h3>
-        <p style="color:#666; margin-bottom: 20px;">Ferramentas de diagnóstico e limpeza de cache do ERP.</p>
-        
-        <div style="border: 1px solid #eee; padding: 20px; border-radius: 15px; margin-bottom: 15px;">
-            <h4 style="margin-bottom: 10px;"><i class="fas fa-broom"></i> Limpeza de Cache Local</h4>
-            <p style="font-size: 0.9rem; margin-bottom: 15px; color: #555;">Remove configurações temporárias do navegador. Não apaga dados da base de dados.</p>
-            <button class="btn-outline" onclick="localStorage.clear(); alert('Cache limpo!'); location.reload();">Limpar Cache do Navegador</button>
-        </div>
-        
-        <div style="border: 1px solid #eee; padding: 20px; border-radius: 15px;">
-            <h4 style="margin-bottom: 10px;"><i class="fas fa-database"></i> Estado da Ligação Supabase</h4>
-            <div id="dbStatus" style="font-weight: bold; color: green;">Conectado e Operacional</div>
+        <div>
+            <span id="adminUserInfo" style="margin-right:15px; font-weight:600; color:var(--primary-color);"></span>
+            <button onclick="logoutAdmin()" style="background: #C17225; padding: 0.5rem 1.5rem; border-radius: 20px;">Sair</button>
         </div>
     </div>
+
+    <div class="admin-tabs" id="adminTabs"></div>
+
+    <div id="tabEmpresa" class="tab-content"></div>
+    <div id="tabCardapio" class="tab-content"></div>
+    <div id="tabFreezer" class="tab-content"></div>
+    <div id="tabPedidos" class="tab-content"></div>
+    <div id="tabUtilizadores" class="tab-content"></div>
+    <div id="tabManutencao" class="tab-content"></div>
 </div>
 
 <footer>
-    <strong>KEBRYKA, CONSULTORIA FORMAÇÃO E SERVIÇOS, LDA</strong><br>
-    Luanda, Angola | Software Gestão & Cardápios Web
+    <div class="linha1">Software Desenvolvido por So Na Digital - Empresa de Tecnologia do Grupo KEBRYKA</div>
+    <div class="linha2">Luanda – Angola / Contactos: +244 937 739 757 | +244 931 562 571 / E-mail: sonadigital@kebryka.com</div>
 </footer>
 
+<!-- MODAIS -->
 <div id="modalLogin" class="modal-overlay">
     <div class="modal-content">
         <h3><i class="fas fa-lock"></i> Acesso Administrativo</h3>
@@ -292,11 +223,9 @@
         <h3 style="justify-content: flex-start;"><i class="fas fa-shopping-cart"></i> O Seu Pedido</h3>
         <div id="cartItems" style="max-height: 300px; overflow-y: auto; margin-bottom: 15px; padding-right: 10px;"></div>
         <div style="text-align: right; font-size: 1.4rem; font-weight: bold; color: var(--primary-color); margin-bottom: 20px;" id="cartTotalUI"></div>
-        
         <input type="text" id="cliName" placeholder="Nome Completo *" required>
         <input type="text" id="cliEnd" placeholder="Endereço de Entrega (Opcional)">
         <textarea id="cliNote" placeholder="Notas (Troco, observações...)"></textarea>
-        
         <div class="modal-actions">
             <button class="btn-outline" onclick="closeModals()">Voltar</button>
             <button style="background: #25D366;" onclick="sendOrder()"><i class="fab fa-whatsapp"></i> Confirmar Pedido</button>
@@ -304,22 +233,37 @@
     </div>
 </div>
 
+<div id="modalConfirm" class="modal-overlay">
+    <div class="modal-content">
+        <h3 id="modalConfirmTitle">Confirmar</h3>
+        <p id="modalConfirmMsg" style="margin-bottom:1.5rem;"></p>
+        <div class="modal-actions">
+            <button id="modalConfirmBtn" class="btn-danger">Confirmar</button>
+            <button class="btn-outline" onclick="closeModals()">Cancelar</button>
+        </div>
+    </div>
+</div>
+
 <script>
-    // Configuração Supabase (Mantida a do utilizador)
+    // CONFIGURAÇÃO SUPABASE
     const SUPABASE_URL = "https://lpmlpzgkzgjjaratwywk.supabase.co";
     const SUPABASE_KEY = "sb_publishable_sTOrQww-z_zW4q9V8sDefw_k-BG64wX";
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
+    // ESTADO GLOBAL
     let db = { empresa: {}, pratos: [], freezer: [], pedidos: [], utilizadores: [] };
     let cart = [];
     let editId = null;
-    let idxFeatured = 0;
-    let idxFreezer = 0;
+    let idxFeatured = 0, idxFreezer = 0;
+    let loggedUser = null;
+    let autoSlideInterval = null;
+    let chartInstances = {};
+    let activeTab = 'tabEmpresa';
 
-    // Utilitários
     const fKz = v => Number(v).toLocaleString('pt-AO', {minimumFractionDigits:2}) + " Kz";
     const getBase64 = file => new Promise((res, rej) => { const r = new FileReader(); r.readAsDataURL(file); r.onload = ()=>res(r.result); r.onerror = e=>rej(e); });
 
+    // --- LOAD DATA ---
     async function loadData() {
         try {
             const [emp, prt, frz, ped, usr] = await Promise.all([
@@ -334,48 +278,42 @@
             db.freezer = frz.data || [];
             db.pedidos = ped.data || [];
             db.utilizadores = usr.data || [];
+
+            await ensureAdminUser();
             renderAll();
         } catch(e) { console.error("Erro BD:", e); }
     }
 
-    // Inicialização
-    window.onload = () => {
-        loadData();
-        
-        // Eventos dos botões flutuantes e pesquisa
-        document.getElementById('btnOpenLogin').onclick = () => {
-            const sel = document.getElementById('loginUser');
-            sel.innerHTML = db.utilizadores.length 
-                ? db.utilizadores.map(u => `<option value="${u.id}">${u.name}</option>`).join('')
-                : `<option value="">Nenhum utilizador (Crie um via BD)</option>`;
-            document.getElementById('modalLogin').style.display = 'flex';
-        };
-        
-        document.getElementById('btnOpenCart').onclick = () => {
-            renderCartUI();
-            document.getElementById('modalCart').style.display = 'flex';
-        };
-
-        document.getElementById('searchInput').addEventListener('input', renderClientMenu);
-
-        // Lógica das Tabs do Painel
-        document.querySelectorAll('.tab').forEach(t => {
-            t.onclick = () => {
-                document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
-                document.querySelectorAll('.tab-content').forEach(x => x.classList.remove('active'));
-                t.classList.add('active');
-                document.getElementById(t.dataset.target).classList.add('active');
-            };
-        });
-    };
-
-    function closeModals() {
-        document.querySelectorAll('.modal-overlay').forEach(m => m.style.display = 'none');
+    async function ensureAdminUser() {
+        const adminExists = db.utilizadores.find(u => u.id === 'admin');
+        if (!adminExists) {
+            await supabaseClient.from('utilizadores').insert({
+                id: 'admin',
+                name: 'Administrador',
+                password: 'admin123#',
+                role: 'admin',
+                permissoes: ['empresa','cardapio','freezer','pedidos','utilizadores','manutencao']
+            });
+            db.utilizadores.push({
+                id: 'admin',
+                name: 'Administrador',
+                password: 'admin123#',
+                role: 'admin',
+                permissoes: ['empresa','cardapio','freezer','pedidos','utilizadores','manutencao']
+            });
+        } else {
+            if (!adminExists.permissoes || adminExists.permissoes.length === 0) {
+                await supabaseClient.from('utilizadores').update({
+                    role: 'admin',
+                    permissoes: ['empresa','cardapio','freezer','pedidos','utilizadores','manutencao']
+                }).eq('id', 'admin');
+                adminExists.role = 'admin';
+                adminExists.permissoes = ['empresa','cardapio','freezer','pedidos','utilizadores','manutencao'];
+            }
+        }
     }
 
-    // --- RENDERIZAÇÃO CLIENTE ---
     function renderAll() {
-        // Cabeçalho Empresa
         document.getElementById('displayLogo').src = db.empresa.logo || 'https://placehold.co/120x120?text=Logo';
         document.getElementById('displayName').innerText = db.empresa.name || "Meu Restaurante";
         document.getElementById('displayAddress').innerText = db.empresa.address || "Endereço não definido";
@@ -384,16 +322,18 @@
 
         renderClientMenu();
         renderCarousels();
-        populateAdminPanel();
+        if (loggedUser) {
+            populateAdminPanel();
+        }
+        document.getElementById('cartCount').innerText = cart.reduce((s,c)=>s+c.qty,0);
     }
 
     function renderClientMenu() {
         const term = document.getElementById('searchInput').value.toLowerCase();
         const filt = db.pratos.filter(p => p.name.toLowerCase().includes(term));
-        
         const renderCard = p => `
             <div class="card">
-                <img src="${p.image || 'https://placehold.co/400x200?text=Sem+Imagem'}" class="card-img">
+                <img src="${p.image || 'https://placehold.co/400x200?text=Sem+Imagem'}" class="card-img" loading="lazy">
                 <div class="card-body">
                     <div class="card-title">${p.name} ${p.featured ? '<i class="fas fa-star" style="color:#C17225; font-size:1rem;"></i>' : ''}</div>
                     <p style="color:#666; font-size:0.9rem; margin-bottom:10px;">${p.description || ''}</p>
@@ -402,24 +342,30 @@
                 </div>
             </div>
         `;
-
         document.getElementById('gridComidas').innerHTML = filt.filter(p=>p.category==='comida').map(renderCard).join('') || '<p>Nenhum item.</p>';
         document.getElementById('gridBebidas').innerHTML = filt.filter(p=>p.category==='bebida').map(renderCard).join('') || '<p>Nenhum item.</p>';
         document.getElementById('gridSobremesas').innerHTML = filt.filter(p=>p.category==='sobremesa').map(renderCard).join('') || '<p>Nenhum item.</p>';
     }
 
-    // Lógica Carrossel Corrigida
+    // --- CARROSSEL ---
     function renderCarousels() {
         const feat = db.pratos.filter(p => p.featured);
         const trkF = document.getElementById('trackFeatured');
-        trkF.innerHTML = feat.map(p => `<div class="carousel-slide"><img src="${p.image}"><div class="carousel-caption">${p.name}</div></div>`).join('') || '<div class="carousel-slide"><img src="https://placehold.co/600x300?text=Sem+Destaques"></div>';
-        
+        trkF.innerHTML = feat.map(p => `<div class="carousel-slide"><img src="${p.image}" loading="lazy"><div class="carousel-caption">${p.name}</div></div>`).join('') || '<div class="carousel-slide"><img src="https://placehold.co/600x300?text=Sem+Destaques" loading="lazy"></div>';
         const trkFrz = document.getElementById('trackFreezer');
-        trkFrz.innerHTML = db.freezer.map(f => `<div class="carousel-slide"><img src="${f.image}"></div>`).join('') || '<div class="carousel-slide"><img src="https://placehold.co/600x300?text=Vazio"></div>';
-        
+        trkFrz.innerHTML = db.freezer.map(f => `<div class="carousel-slide"><img src="${f.image}" loading="lazy"></div>`).join('') || '<div class="carousel-slide"><img src="https://placehold.co/600x300?text=Vazio" loading="lazy"></div>';
         idxFeatured = 0; idxFreezer = 0;
         trkF.style.transform = `translateX(0)`;
         trkFrz.style.transform = `translateX(0)`;
+        startAutoSlide();
+    }
+
+    function startAutoSlide() {
+        if (autoSlideInterval) clearInterval(autoSlideInterval);
+        autoSlideInterval = setInterval(() => {
+            slideCarousel('featured', 1);
+            slideCarousel('freezer', 1);
+        }, 5000);
     }
 
     window.slideCarousel = (type, dir) => {
@@ -427,7 +373,6 @@
         const items = type === 'featured' ? db.pratos.filter(p=>p.featured) : db.freezer;
         const total = items.length;
         if(total <= 1) return;
-
         if(type === 'featured') {
             idxFeatured = (idxFeatured + dir + total) % total;
             track.style.transform = `translateX(-${idxFeatured * 100}%)`;
@@ -436,6 +381,11 @@
             track.style.transform = `translateX(-${idxFreezer * 100}%)`;
         }
     };
+
+    document.querySelectorAll('.carousel-container').forEach(el => {
+        el.addEventListener('mouseenter', () => { if (autoSlideInterval) clearInterval(autoSlideInterval); });
+        el.addEventListener('mouseleave', startAutoSlide);
+    });
 
     // --- CARRINHO ---
     window.addToCart = (id) => {
@@ -469,96 +419,514 @@
         if(!cart.length) return alert('Carrinho vazio.');
         const nome = document.getElementById('cliName').value;
         if(!nome) return alert('Insira o seu nome.');
-        
         const tot = cart.reduce((s,c)=>s+(c.price*c.qty), 0);
-        let msg = `*NOVA ENCOMENDA - ${db.empresa.name}*\n\n*Cliente:* ${nome}\n*Morada:* ${document.getElementById('cliEnd').value}\n\n*Pedido:*\n`;
+        let msg = `*Novo Pedido - ${db.empresa.name}*\n\n*Cliente:* ${nome}\n*Morada:* ${document.getElementById('cliEnd').value}\n\n*Pedido:*\n`;
         cart.forEach(c => msg += `- ${c.qty}x ${c.name} (${fKz(c.price*c.qty)})\n`);
-        msg += `\n*Total:* ${fKz(tot)}\n*Notas:* ${document.getElementById('cliNote').value}\n\n_KEBRYKA ERP_`;
+        msg += `\n*Total:* ${fKz(tot)}\n*Notas:* ${document.getElementById('cliNote').value}`;
 
-        await supabaseClient.from('pedidos').insert({ id: Date.now().toString(), customer_name: nome, items: cart, total: tot, status: 'pendente', address: document.getElementById('cliEnd').value });
-        
+        await supabaseClient.from('pedidos').insert({ 
+            id: Date.now().toString(), 
+            customer_name: nome, 
+            items: cart, 
+            total: tot, 
+            status: 'pendente', 
+            address: document.getElementById('cliEnd').value,
+            date: new Date().toISOString()
+        });
         const wa = (db.empresa.whatsapp||'').replace(/\D/g,'');
         if(wa) window.open(`https://wa.me/${wa}?text=${encodeURIComponent(msg)}`);
-        
         cart = []; renderCartUI(); closeModals(); loadData();
     };
 
-    // --- ADMINISTRAÇÃO ---
+    // --- LOGIN / LOGOUT ---
     window.doLogin = () => {
         const id = document.getElementById('loginUser').value;
         const pass = document.getElementById('loginPass').value;
         const u = db.utilizadores.find(x => x.id === id);
         if(u && u.password === pass) {
+            if (!u.permissoes || u.permissoes.length === 0) {
+                u.permissoes = ['empresa','cardapio','freezer','pedidos','utilizadores','manutencao'];
+            }
+            loggedUser = u;
             document.getElementById('modalLogin').style.display = 'none';
             document.getElementById('customerView').style.display = 'none';
             document.getElementById('btnOpenLogin').style.display = 'none';
             document.getElementById('btnOpenCart').style.display = 'none';
             document.getElementById('adminView').style.display = 'block';
+            createAdminTabs();
             populateAdminPanel();
+            document.getElementById('adminUserInfo').innerText = `👤 ${u.name} (${u.role || 'funcionario'})`;
         } else { alert("Credenciais erradas."); }
         document.getElementById('loginPass').value = '';
     };
 
     window.logoutAdmin = () => {
+        loggedUser = null;
         document.getElementById('adminView').style.display = 'none';
         document.getElementById('customerView').style.display = 'block';
         document.getElementById('btnOpenLogin').style.display = 'flex';
         document.getElementById('btnOpenCart').style.display = 'flex';
+        Object.values(chartInstances).forEach(chart => chart.destroy());
+        chartInstances = {};
+        activeTab = 'tabEmpresa';
     };
 
-    function populateAdminPanel() {
-        // Empresa
-        document.getElementById('empName').value = db.empresa.name || '';
-        document.getElementById('empAddress').value = db.empresa.address || '';
-        document.getElementById('empEmail').value = db.empresa.email || '';
-        document.getElementById('empWa').value = db.empresa.whatsapp || '';
-
-        // Cardápio
-        document.getElementById('listaCardapio').innerHTML = db.pratos.map(p => `
-            <div class="list-item">
-                <div style="display:flex; align-items:center; gap:15px;">
-                    <img src="${p.image}" style="width:50px; height:50px; border-radius:10px; object-fit:cover;">
-                    <div><strong>${p.name}</strong><br><small>${fKz(p.price)}</small></div>
-                </div>
-                <div>
-                    <button class="btn-outline" onclick="editPrato('${p.id}')" style="padding:5px 10px;"><i class="fas fa-edit"></i></button>
-                    <button onclick="delPrato('${p.id}')" style="background:#dc3545; padding:5px 10px;"><i class="fas fa-trash"></i></button>
-                </div>
-            </div>`).join('');
-
-        // Freezer
-        document.getElementById('listaFreezer').innerHTML = db.freezer.map(f => `
-            <div style="position:relative;">
-                <img src="${f.image}" style="width:120px; height:120px; border-radius:10px; object-fit:cover;">
-                <button onclick="delFreezer('${f.id}')" style="position:absolute; top:-5px; right:-5px; background:red; padding:5px 8px; border-radius:50%;"><i class="fas fa-times"></i></button>
-            </div>`).join('');
-
-        // Utilizadores (NOVO)
-        document.getElementById('listaUtilizadores').innerHTML = db.utilizadores.map(u => `
-            <div class="list-item">
-                <div><strong><i class="fas fa-user"></i> ${u.name}</strong></div>
-                <button onclick="delUser('${u.id}')" style="background:#dc3545; padding:5px 10px;"><i class="fas fa-trash"></i></button>
-            </div>`).join('');
-
-        // Pedidos & Estatísticas
-        document.getElementById('statTotalPedidos').innerText = db.pedidos.length;
-        document.getElementById('statReceita').innerText = fKz(db.pedidos.reduce((s,p)=>s+p.total, 0));
-        
-        document.getElementById('listaPedidos').innerHTML = db.pedidos.map(p => `
-            <div class="list-item" style="flex-direction:column; align-items:flex-start;">
-                <div style="display:flex; justify-content:space-between; width:100%;">
-                    <strong>${p.customer_name}</strong>
-                    <span style="color:var(--primary-color); font-weight:bold;">${fKz(p.total)}</span>
-                </div>
-                <small>${new Date(p.date).toLocaleString()} | Estado: ${p.status.toUpperCase()}</small>
-                <div style="margin-top:10px;">
-                    <button onclick="updPed('${p.id}','concluido')" style="padding:5px 10px; font-size:0.8rem; background:green;">Concluir</button>
-                    <button onclick="updPed('${p.id}','cancelado')" style="padding:5px 10px; font-size:0.8rem; background:red;">Cancelar</button>
-                </div>
-            </div>`).join('');
+    // --- ADMIN UI (criação das abas) ---
+    function createAdminTabs() {
+        const tabsContainer = document.getElementById('adminTabs');
+        if (!loggedUser) return;
+        let permissoes = loggedUser.permissoes;
+        if (!permissoes || !Array.isArray(permissoes) || permissoes.length === 0) {
+            permissoes = ['empresa','cardapio','freezer','pedidos','utilizadores','manutencao'];
+            loggedUser.permissoes = permissoes;
+        }
+        const tabMap = {
+            empresa: { icon: 'fa-store', label: 'Empresa' },
+            cardapio: { icon: 'fa-utensils', label: 'Cardápio' },
+            freezer: { icon: 'fa-camera', label: 'Freezer' },
+            pedidos: { icon: 'fa-box', label: 'Pedidos & Estatísticas' },
+            utilizadores: { icon: 'fa-users', label: 'Utilizadores' },
+            manutencao: { icon: 'fa-tools', label: 'Manutenção' }
+        };
+        tabsContainer.innerHTML = '';
+        permissoes.forEach(key => {
+            if (!tabMap[key]) return;
+            const tab = document.createElement('div');
+            tab.className = 'tab';
+            tab.dataset.target = 'tab' + key.charAt(0).toUpperCase() + key.slice(1);
+            tab.innerHTML = `<i class="fas ${tabMap[key].icon}"></i> ${tabMap[key].label}`;
+            tab.onclick = () => {
+                document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(x => x.style.display = 'none');
+                tab.classList.add('active');
+                const target = document.getElementById(tab.dataset.target);
+                if (target) target.style.display = 'block';
+                activeTab = tab.dataset.target;
+            };
+            tabsContainer.appendChild(tab);
+        });
+        let firstTab = tabsContainer.querySelector('.tab');
+        if (firstTab) {
+            const targetEl = document.getElementById(activeTab);
+            if (targetEl) {
+                const tabToActivate = Array.from(tabsContainer.querySelectorAll('.tab')).find(t => t.dataset.target === activeTab);
+                if (tabToActivate) {
+                    tabToActivate.classList.add('active');
+                    targetEl.style.display = 'block';
+                    return;
+                }
+            }
+            firstTab.classList.add('active');
+            const target = document.getElementById(firstTab.dataset.target);
+            if (target) target.style.display = 'block';
+            activeTab = firstTab.dataset.target;
+        } else {
+            tabsContainer.innerHTML = '<p style="color:#777;">Nenhuma permissão disponível.</p>';
+        }
     }
 
-    // Ações Admin - Empresa
+    // --- POPULATE ADMIN PANEL ---
+    function populateAdminPanel() {
+        const currentActive = document.querySelector('.tab.active');
+        const currentTarget = currentActive ? currentActive.dataset.target : activeTab;
+
+        // Empresa
+        document.getElementById('tabEmpresa').innerHTML = `
+            <h3>Dados da Empresa</h3>
+            <input type="text" id="empName" placeholder="Nome do Restaurante" value="${db.empresa.name || ''}">
+            <div style="margin-bottom: 15px;">
+                <label style="font-weight: 600; display:block; margin-bottom: 5px;">Logótipo:</label>
+                <input type="file" id="empLogo" accept="image/*" style="border: 1px solid #ddd; padding: 10px; border-radius: 10px;">
+            </div>
+            <input type="text" id="empAddress" placeholder="Endereço" value="${db.empresa.address || ''}">
+            <input type="email" id="empEmail" placeholder="Email de contacto" value="${db.empresa.email || ''}">
+            <input type="text" id="empWa" placeholder="WhatsApp (Ex: 2449...)" value="${db.empresa.whatsapp || ''}">
+            <button onclick="saveEmpresa()">Salvar Empresa</button>
+        `;
+
+        // Cardápio
+        document.getElementById('tabCardapio').innerHTML = `
+            <div style="display:flex; justify-content:space-between; margin-bottom: 1.5rem;">
+                <h3>Gestão de Estoque / Cardápio</h3>
+                <button onclick="openFormCardapio()">+ Adicionar Item</button>
+            </div>
+            <div id="formCardapio" style="display:none; background: #f9f9f9; padding: 20px; border-radius: 15px; margin-bottom: 20px; border: 1px solid #eee;">
+                <h4 id="formCardapioTitle" style="margin-bottom: 10px;">Novo Item</h4>
+                <input type="text" id="prdName" placeholder="Nome">
+                <textarea id="prdDesc" placeholder="Descrição"></textarea>
+                <input type="number" id="prdPrice" placeholder="Preço (Kz)">
+                <select id="prdCat">
+                    <option value="comida">Comida</option>
+                    <option value="bebida">Bebida</option>
+                    <option value="sobremesa">Sobremesa</option>
+                </select>
+                <input type="file" id="prdImg" accept="image/*" style="border:1px solid #ddd; padding:10px; border-radius:10px; margin-bottom:15px;">
+                <label style="display:block; margin-bottom: 15px;">
+                    <input type="checkbox" id="prdFeatured"> Destacar (Pratos da Casa)
+                </label>
+                <button onclick="savePrato()">Guardar</button>
+                <button class="btn-outline" onclick="document.getElementById('formCardapio').style.display='none'">Cancelar</button>
+            </div>
+            <div id="listaCardapio"></div>
+        `;
+
+        // Freezer
+        document.getElementById('tabFreezer').innerHTML = `
+            <h3>Freezer da Semana</h3>
+            <p style="margin-bottom: 15px; color:#666;">Adicione fotos do expositor ou do ambiente.</p>
+            <input type="file" id="freezImg" accept="image/*" style="border:1px solid #ddd; padding:10px; border-radius:10px; margin-bottom:15px;">
+            <button onclick="saveFreezer()">Adicionar Foto</button>
+            <div id="listaFreezer" style="display:flex; flex-wrap:wrap; gap:15px; margin-top:20px;"></div>
+        `;
+
+        // Pedidos & Estatísticas
+        document.getElementById('tabPedidos').innerHTML = `
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 1.5rem; flex-wrap:wrap;">
+                <h3>Controlo de Encomendas</h3>
+                <button class="btn-outline" onclick="gerarRelatorioPDF()"><i class="fas fa-file-pdf"></i> Gerar Relatório PDF</button>
+            </div>
+            <div class="filter-row">
+                <div class="form-group">
+                    <label>Data Início</label>
+                    <input type="date" id="filterDateIni">
+                </div>
+                <div class="form-group">
+                    <label>Data Fim</label>
+                    <input type="date" id="filterDateFim">
+                </div>
+                <div style="display:flex; gap:10px; align-items:center;">
+                    <button onclick="filtrarPedidos()">Filtrar</button>
+                    <button class="btn-outline" onclick="limparFiltroPedidos()">Limpar</button>
+                </div>
+            </div>
+            <div id="statsContainer" class="stat-cards"></div>
+            <div id="listaPedidos" style="margin-bottom: 2rem;"></div>
+            <div class="chart-grid" id="chartGrid">
+                <div class="chart-box"><canvas id="chartVendasDia"></canvas></div>
+                <div class="chart-box"><canvas id="chartStatus"></canvas></div>
+                <div class="chart-box"><canvas id="chartCategoria"></canvas></div>
+                <div class="chart-box"><canvas id="chartItens"></canvas></div>
+            </div>
+        `;
+
+        // Utilizadores
+        document.getElementById('tabUtilizadores').innerHTML = `
+            <h3>Registrar / Editar Utilizador</h3>
+            <div style="background: #f9f9f9; padding: 20px; border-radius: 15px; margin-bottom: 20px; border: 1px solid #eee;">
+                <input type="text" id="usrName" placeholder="Nome completo">
+                <input type="password" id="usrPass" placeholder="Senha">
+                <div style="margin: 15px 0;">
+                    <label style="font-weight:600;">Permissões:</label>
+                    <div class="permissoes-checkbox">
+                        <label><input type="checkbox" class="perm-check" value="empresa" checked> Empresa</label>
+                        <label><input type="checkbox" class="perm-check" value="cardapio" checked> Cardápio</label>
+                        <label><input type="checkbox" class="perm-check" value="freezer" checked> Freezer</label>
+                        <label><input type="checkbox" class="perm-check" value="pedidos" checked> Pedidos</label>
+                        <label><input type="checkbox" class="perm-check" value="utilizadores" checked> Utilizadores</label>
+                        <label><input type="checkbox" class="perm-check" value="manutencao" checked> Manutenção</label>
+                    </div>
+                </div>
+                <button onclick="saveUser()">Salvar</button>
+                <button class="btn-outline" onclick="document.getElementById('usrName').value='';document.getElementById('usrPass').value='';">Cancelar</button>
+            </div>
+            <div id="listaUtilizadores"></div>
+        `;
+
+        // Manutenção
+        document.getElementById('tabManutencao').innerHTML = `
+            <h3>Manutenção do Sistema</h3>
+            <p style="color:#666; margin-bottom: 20px;">Ferramentas de gestão da base de dados.</p>
+            <div style="display:flex; flex-wrap:wrap; gap:1rem; margin-bottom:1rem;">
+                <button onclick="exportarDados()"><i class="fas fa-download"></i> Exportar Dados (JSON)</button>
+                <button onclick="document.getElementById('importFileInput').click()"><i class="fas fa-upload"></i> Importar Dados (JSON)</button>
+                <input type="file" id="importFileInput" accept=".json" style="display:none" onchange="importarDados(event)">
+                <button class="btn-danger" onclick="confirmarRestauro()"><i class="fas fa-trash-alt"></i> Restaurar Padrão</button>
+            </div>
+            <div style="border:1px solid #eee; padding:20px; border-radius:15px; margin-top:20px;">
+                <h4 style="margin-bottom:10px;"><i class="fas fa-database"></i> Estado da Ligação Supabase</h4>
+                <div id="dbStatus" style="font-weight: bold; color: green;">Conectado e Operacional</div>
+            </div>
+        `;
+
+        // Popular listas
+        const listaCardapio = document.getElementById('listaCardapio');
+        if(listaCardapio) {
+            listaCardapio.innerHTML = db.pratos.map(p => `
+                <div class="list-item">
+                    <div style="display:flex; align-items:center; gap:15px;">
+                        <img src="${p.image}" style="width:50px; height:50px; border-radius:10px; object-fit:contain; background:#f0f0f0;">
+                        <div><strong>${p.name}</strong><br><small>${fKz(p.price)}</small></div>
+                    </div>
+                    <div>
+                        <button class="btn-outline" onclick="editPrato('${p.id}')" style="padding:5px 10px;"><i class="fas fa-edit"></i></button>
+                        <button onclick="delPrato('${p.id}')" style="background:#dc3545; padding:5px 10px;"><i class="fas fa-trash"></i></button>
+                    </div>
+                </div>`).join('');
+        }
+
+        const listaFreezer = document.getElementById('listaFreezer');
+        if(listaFreezer) {
+            listaFreezer.innerHTML = db.freezer.map(f => `
+                <div style="position:relative;">
+                    <img src="${f.image}" style="width:120px; height:120px; border-radius:10px; object-fit:contain; background:#f0f0f0;">
+                    <button onclick="delFreezer('${f.id}')" style="position:absolute; top:-5px; right:-5px; background:red; padding:5px 8px; border-radius:50%;"><i class="fas fa-times"></i></button>
+                </div>`).join('');
+        }
+
+        const listaUtilizadores = document.getElementById('listaUtilizadores');
+        if(listaUtilizadores) {
+            listaUtilizadores.innerHTML = db.utilizadores.map(u => `
+                <div class="list-item">
+                    <div><strong><i class="fas fa-user"></i> ${u.name}</strong> <span style="color:#777; font-size:0.8rem;">(${u.role || 'funcionario'})</span></div>
+                    <div>
+                        ${u.id === 'admin' ? '<span style="color:#C17225; font-weight:bold;">Fixo</span>' : 
+                        `<button onclick="delUser('${u.id}')" style="background:#dc3545; padding:5px 10px;"><i class="fas fa-trash"></i></button>`}
+                    </div>
+                </div>`).join('');
+        }
+
+        // Restaurar aba ativa
+        if (currentTarget) {
+            const tabToActivate = document.querySelector(`.tab[data-target="${currentTarget}"]`);
+            if (tabToActivate) {
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
+                tabToActivate.classList.add('active');
+                const content = document.getElementById(currentTarget);
+                if (content) content.style.display = 'block';
+                activeTab = currentTarget;
+            }
+        }
+
+        filtrarPedidos();
+    }
+
+    // --- FILTRO E GRÁFICOS ---
+    function filtrarPedidos() {
+        const ini = document.getElementById('filterDateIni').value;
+        const fim = document.getElementById('filterDateFim').value;
+        let pedidosFiltrados = db.pedidos;
+        if (ini) {
+            const d = new Date(ini+'T00:00:00');
+            pedidosFiltrados = pedidosFiltrados.filter(p => new Date(p.date) >= d);
+        }
+        if (fim) {
+            const d = new Date(fim+'T23:59:59');
+            pedidosFiltrados = pedidosFiltrados.filter(p => new Date(p.date) <= d);
+        }
+
+        // Cálculo dos indicadores
+        const totalPedidos = pedidosFiltrados.length;
+        const totalItens = pedidosFiltrados.reduce((acc, p) => {
+            if (p.items && Array.isArray(p.items)) {
+                return acc + p.items.reduce((s, i) => s + (i.qty || 0), 0);
+            }
+            return acc;
+        }, 0);
+        const receitaTotal = pedidosFiltrados.reduce((s, p) => s + (p.total || 0), 0);
+
+        // Renderizar os 3 cards
+        document.getElementById('statsContainer').innerHTML = `
+            <div class="stat-card"><h4>Total de Pedidos</h4><div class="value">${totalPedidos}</div></div>
+            <div class="stat-card"><h4>Quantidade de Artigos Pedidos</h4><div class="value">${totalItens}</div></div>
+            <div class="stat-card"><h4>Total da Receita</h4><div class="value">${fKz(receitaTotal)}</div></div>
+        `;
+
+        // Lista de pedidos (sem estado)
+        const lista = document.getElementById('listaPedidos');
+        lista.innerHTML = pedidosFiltrados.map(p => {
+            const items = p.items || [];
+            let detalhes = items.map(item => `
+                <tr>
+                    <td>${item.name}</td>
+                    <td>${item.qty}</td>
+                    <td>${fKz(item.price)}</td>
+                    <td>${fKz(item.price * item.qty)}</td>
+                </tr>
+            `).join('');
+            return `
+                <div class="list-item" style="flex-direction:column; align-items:flex-start; border-bottom: 2px solid #eee; padding: 1rem 0;">
+                    <div style="display:flex; justify-content:space-between; width:100%; margin-bottom: 8px;">
+                        <strong>${p.customer_name}</strong>
+                        <span style="color:var(--primary-color); font-weight:bold;">${fKz(p.total)}</span>
+                    </div>
+                    <small>${new Date(p.date).toLocaleString()}</small>
+                    <div class="pedido-detalhes" style="width:100%; margin-top: 8px;">
+                        <table>
+                            <thead>
+                                <tr><th>Artigo</th><th>Qtd</th><th>Preço Unit.</th><th>Subtotal</th></tr>
+                            </thead>
+                            <tbody>${detalhes}</tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        atualizarGraficos(pedidosFiltrados);
+    }
+
+    window.limparFiltroPedidos = () => {
+        document.getElementById('filterDateIni').value = '';
+        document.getElementById('filterDateFim').value = '';
+        filtrarPedidos();
+    };
+
+    // --- GRÁFICOS ---
+    function atualizarGraficos(pedidos) {
+        Object.values(chartInstances).forEach(chart => chart.destroy());
+        chartInstances = {};
+
+        const ctx1 = document.getElementById('chartVendasDia');
+        if (ctx1) {
+            const agrupado = {};
+            pedidos.forEach(p => {
+                const dia = new Date(p.date).toISOString().split('T')[0];
+                agrupado[dia] = (agrupado[dia] || 0) + 1;
+            });
+            const labels = Object.keys(agrupado).sort();
+            const data = labels.map(d => agrupado[d]);
+            chartInstances.vendasDia = new Chart(ctx1, {
+                type: 'bar',
+                data: { labels, datasets: [{ label: 'Pedidos', data, backgroundColor: '#C17225' }] },
+                options: { responsive: true, plugins: { title: { display: true, text: 'Pedidos por Dia' } } }
+            });
+        }
+
+        const ctx2 = document.getElementById('chartStatus');
+        if (ctx2) {
+            const pendentes = pedidos.filter(p => p.status === 'pendente').length;
+            const concluidos = pedidos.filter(p => p.status === 'concluido').length;
+            const cancelados = pedidos.filter(p => p.status === 'cancelado').length;
+            chartInstances.status = new Chart(ctx2, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Pendentes', 'Concluídos', 'Cancelados'],
+                    datasets: [{ data: [pendentes, concluidos, cancelados], backgroundColor: ['#FFC107', '#28a745', '#dc3545'] }]
+                },
+                options: { responsive: true, plugins: { title: { display: true, text: 'Status dos Pedidos' } } }
+            });
+        }
+
+        const ctx3 = document.getElementById('chartCategoria');
+        if (ctx3) {
+            const catVal = {};
+            pedidos.forEach(p => {
+                (p.items || []).forEach(item => {
+                    const prato = db.pratos.find(pr => pr.id === item.id);
+                    const cat = prato ? prato.category : 'outro';
+                    catVal[cat] = (catVal[cat] || 0) + (item.price * item.qty);
+                });
+            });
+            const labels = Object.keys(catVal);
+            const data = labels.map(k => catVal[k]);
+            chartInstances.categoria = new Chart(ctx3, {
+                type: 'bar',
+                data: { labels, datasets: [{ label: 'Faturamento (Kz)', data, backgroundColor: ['#C17225','#2F323A','#FFC107'] }] },
+                options: { responsive: true, plugins: { title: { display: true, text: 'Faturamento por Categoria' } } }
+            });
+        }
+
+        const ctx4 = document.getElementById('chartItens');
+        if (ctx4) {
+            const itemCount = {};
+            pedidos.forEach(p => {
+                (p.items || []).forEach(item => {
+                    itemCount[item.name] = (itemCount[item.name] || 0) + item.qty;
+                });
+            });
+            const sorted = Object.entries(itemCount).sort((a,b) => b[1] - a[1]).slice(0, 5);
+            const labels = sorted.map(s => s[0]);
+            const data = sorted.map(s => s[1]);
+            chartInstances.itens = new Chart(ctx4, {
+                type: 'bar',
+                data: { labels, datasets: [{ label: 'Quantidade', data, backgroundColor: '#C17225' }] },
+                options: { indexAxis: 'y', responsive: true, plugins: { title: { display: true, text: 'Itens mais Pedidos' } } }
+            });
+        }
+    }
+
+    // --- RELATÓRIO PDF (com lista completa e gráficos) ---
+    window.gerarRelatorioPDF = async () => {
+        const element = document.getElementById('tabPedidos');
+        if (!element) return alert('Aba de pedidos não encontrada.');
+        const btn = document.querySelector('#tabPedidos .btn-outline');
+        if (btn) btn.innerText = 'Gerando...';
+
+        const content = element.cloneNode(true);
+        // Remover filtros e botões
+        const filtros = content.querySelector('.filter-row');
+        if (filtros) filtros.remove();
+        const header = content.querySelector('h3');
+        if (header) header.remove();
+        const pdfBtn = content.querySelector('.btn-outline');
+        if (pdfBtn) pdfBtn.remove();
+        // Remover qualquer botão que possa ter sobrado
+        content.querySelectorAll('button').forEach(b => b.remove());
+
+        const wrapper = document.createElement('div');
+        wrapper.style.position = 'absolute';
+        wrapper.style.left = '-9999px';
+        wrapper.style.top = '0';
+        wrapper.style.width = '1000px';
+        wrapper.style.background = 'white';
+        wrapper.style.padding = '20px';
+        wrapper.appendChild(content);
+        document.body.appendChild(wrapper);
+
+        await new Promise(r => setTimeout(r, 800));
+
+        const canvas = await html2canvas(wrapper, { scale: 2, useCORS: true, logging: false });
+        document.body.removeChild(wrapper);
+
+        const imgData = canvas.toDataURL('image/png');
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF('p', 'mm', 'a4');
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = pdf.internal.pageSize.getHeight();
+
+        const logo = db.empresa.logo || 'https://placehold.co/200x80?text=Logo';
+        const logoImg = await loadImage(logo);
+        if (logoImg) {
+            pdf.addImage(logoImg, 'PNG', 10, 10, 40, 20);
+        }
+        pdf.setFontSize(16);
+        pdf.text(db.empresa.name || 'Meu Restaurante', 60, 22);
+        pdf.setFontSize(10);
+        pdf.text(`Relatório de Pedidos - ${new Date().toLocaleDateString()}`, 60, 30);
+
+        const contentWidth = pdfWidth - 20;
+        const contentHeight = (canvas.height * contentWidth) / canvas.width;
+        let yPos = 40;
+        if (yPos + contentHeight > pdfHeight - 20) {
+            const scale = (pdfHeight - 30) / (yPos + contentHeight);
+            const newWidth = pdfWidth * scale;
+            const newHeight = contentHeight * scale;
+            pdf.addImage(imgData, 'PNG', (pdfWidth - newWidth)/2, yPos, newWidth, newHeight);
+        } else {
+            pdf.addImage(imgData, 'PNG', 10, yPos, contentWidth, contentHeight);
+        }
+
+        const rodape = `${db.empresa.address || ''} | ${db.empresa.email || ''} | Tel: ${db.empresa.whatsapp || ''}`;
+        pdf.setFontSize(8);
+        pdf.setTextColor(100);
+        pdf.text(rodape, 10, pdfHeight - 10);
+
+        pdf.save('Relatorio_Pedidos_Estatisticas.pdf');
+        if (btn) btn.innerText = 'Gerar Relatório PDF';
+    };
+
+    function loadImage(src) {
+        return new Promise((resolve) => {
+            const img = new Image();
+            img.crossOrigin = 'anonymous';
+            img.onload = () => resolve(img);
+            img.onerror = () => resolve(null);
+            img.src = src;
+        });
+    }
+
+    // --- AÇÕES ADMIN ---
     window.saveEmpresa = async () => {
         let logo = db.empresa.logo;
         const fi = document.getElementById('empLogo');
@@ -567,18 +935,6 @@
         alert('Empresa salva!'); loadData();
     };
 
-    // Ações Admin - Utilizadores (NOVO)
-    window.saveUser = async () => {
-        const n = document.getElementById('usrName').value;
-        const p = document.getElementById('usrPass').value;
-        if(!n || !p) return alert("Preencha nome e senha.");
-        await supabaseClient.from('utilizadores').insert({ id: Date.now().toString(), name: n, password: p });
-        document.getElementById('usrName').value = ''; document.getElementById('usrPass').value = '';
-        loadData();
-    };
-    window.delUser = async id => { if(confirm('Remover utilizador?')) { await supabaseClient.from('utilizadores').delete().eq('id',id); loadData(); } };
-
-    // Ações Admin - Pratos
     window.openFormCardapio = () => { editId=null; document.getElementById('formCardapioTitle').innerText='Novo Item'; ['prdName','prdDesc','prdPrice','prdImg'].forEach(id=>document.getElementById(id).value=''); document.getElementById('prdFeatured').checked=false; document.getElementById('formCardapio').style.display='block'; };
     window.editPrato = id => { const p=db.pratos.find(x=>x.id===id); if(p){ editId=id; document.getElementById('formCardapioTitle').innerText='Editar Item'; document.getElementById('prdName').value=p.name; document.getElementById('prdDesc').value=p.description; document.getElementById('prdPrice').value=p.price; document.getElementById('prdCat').value=p.category; document.getElementById('prdFeatured').checked=p.featured; document.getElementById('formCardapio').style.display='block'; } };
     window.savePrato = async () => {
@@ -590,22 +946,144 @@
     };
     window.delPrato = async id => { if(confirm('Remover?')) { await supabaseClient.from('pratos').delete().eq('id',id); loadData(); } };
 
-    // Ações Admin - Freezer
     window.saveFreezer = async () => { const fi=document.getElementById('freezImg'); if(!fi.files.length) return; const img = await getBase64(fi.files[0]); await supabaseClient.from('freezer').insert({id:Date.now().toString(), image:img}); document.getElementById('freezImg').value=''; loadData(); };
     window.delFreezer = async id => { await supabaseClient.from('freezer').delete().eq('id',id); loadData(); };
 
-    // Ações Admin - Pedidos
     window.updPed = async (id, st) => { await supabaseClient.from('pedidos').update({status:st}).eq('id',id); loadData(); };
 
-    // Exportação PDF c/ Footers KEBRYKA
-    window.exportPDF = () => {
-        const { jsPDF } = window.jspdf; const doc = new jsPDF();
-        doc.setFontSize(16); doc.text('Relatório de Pedidos', 15, 20);
-        let y=30;
-        db.pedidos.forEach(p => { if(y>260){doc.addPage(); y=20;} doc.setFontSize(10); doc.text(`${p.customer_name} - ${fKz(p.total)} (${p.status})`, 15, y); y+=10; });
-        doc.setFontSize(9); doc.setTextColor(150); doc.text('KEBRYKA, CONSULTORIA FORMAÇÃO E SERVIÇOS, LDA', 15, 285);
-        doc.save('Relatorio_Pedidos_Restaurante.pdf');
+    window.saveUser = async () => {
+        const n = document.getElementById('usrName').value.trim();
+        const p = document.getElementById('usrPass').value.trim();
+        const checks = document.querySelectorAll('.perm-check:checked');
+        const permissoes = Array.from(checks).map(c => c.value);
+        if(!n || !p) return alert("Preencha nome e senha.");
+        if (n === 'admin') return alert('Não pode criar utilizador com nome "admin".');
+        try {
+            const { data, error } = await supabaseClient.from('utilizadores').insert({
+                id: Date.now().toString(),
+                name: n,
+                password: p,
+                role: 'funcionario',
+                permissoes: permissoes
+            });
+            if (error) throw error;
+            alert('Utilizador criado com sucesso!');
+            document.getElementById('usrName').value = '';
+            document.getElementById('usrPass').value = '';
+            loadData();
+        } catch(e) {
+            alert('Erro ao criar utilizador: ' + e.message);
+        }
     };
+
+    window.delUser = async id => {
+        if(id === 'admin') return alert('O utilizador administrador não pode ser removido.');
+        if(confirm('Remover utilizador?')) { 
+            await supabaseClient.from('utilizadores').delete().eq('id',id); 
+            loadData(); 
+        }
+    };
+
+    // --- MANUTENÇÃO ---
+    window.exportarDados = () => {
+        const dados = {
+            empresa: db.empresa,
+            pratos: db.pratos,
+            freezer: db.freezer,
+            pedidos: db.pedidos,
+            utilizadores: db.utilizadores.filter(u => u.id !== 'admin')
+        };
+        const blob = new Blob([JSON.stringify(dados, null, 2)], {type: 'application/json'});
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url; a.download = 'backup_restaurante.json'; a.click();
+        URL.revokeObjectURL(url);
+    };
+
+    window.importarDados = async (event) => {
+        const file = event.target.files[0];
+        if(!file) return;
+        const text = await file.text();
+        if(!confirm('ATENÇÃO: A importação substituirá todos os dados atuais. Deseja continuar?')) return;
+        try {
+            const dados = JSON.parse(text);
+            if (!dados.pratos || !dados.freezer || !dados.pedidos || !dados.empresa) {
+                throw new Error('Arquivo inválido.');
+            }
+            await supabaseClient.from('empresa').upsert(dados.empresa);
+            await supabaseClient.from('pratos').delete().neq('id', '');
+            if (dados.pratos.length) await supabaseClient.from('pratos').insert(dados.pratos);
+            await supabaseClient.from('freezer').delete().neq('id', '');
+            if (dados.freezer.length) await supabaseClient.from('freezer').insert(dados.freezer);
+            await supabaseClient.from('pedidos').delete().neq('id', '');
+            if (dados.pedidos.length) await supabaseClient.from('pedidos').insert(dados.pedidos);
+            const users = dados.utilizadores.filter(u => u.id !== 'admin');
+            await supabaseClient.from('utilizadores').delete().neq('id', 'admin');
+            if (users.length) await supabaseClient.from('utilizadores').insert(users);
+            alert('Dados importados com sucesso!');
+            loadData();
+        } catch(e) {
+            alert('Erro na importação: ' + e.message);
+        }
+        event.target.value = '';
+    };
+
+    window.confirmarRestauro = () => {
+        document.getElementById('modalConfirmTitle').innerText = 'Restaurar Padrão';
+        document.getElementById('modalConfirmMsg').innerHTML = 'Esta ação <strong>apagará todos os dados</strong> (pratos, freezer, pedidos e utilizadores, exceto o administrador).<br>Deseja continuar?';
+        document.getElementById('modalConfirmBtn').onclick = async () => {
+            closeModals();
+            if(confirm('Última confirmação: Tem certeza que deseja limpar toda a base?')) {
+                await supabaseClient.from('pratos').delete().neq('id', '');
+                await supabaseClient.from('freezer').delete().neq('id', '');
+                await supabaseClient.from('pedidos').delete().neq('id', '');
+                await supabaseClient.from('utilizadores').delete().neq('id', 'admin');
+                await supabaseClient.from('empresa').upsert({ id: '1', name: 'Meu Restaurante', address: '', email: '', whatsapp: '', logo: '' });
+                alert('Base de dados restaurada ao estado padrão.');
+                loadData();
+            }
+        };
+        document.getElementById('modalConfirm').style.display = 'flex';
+    };
+
+    // --- MISC ---
+    window.closeModals = () => {
+        document.querySelectorAll('.modal-overlay').forEach(m => m.style.display = 'none');
+    };
+
+    // --- INICIALIZAÇÃO ---
+    window.onload = () => {
+        loadData();
+
+        document.getElementById('btnOpenLogin').onclick = () => {
+            const sel = document.getElementById('loginUser');
+            sel.innerHTML = db.utilizadores.length 
+                ? db.utilizadores.map(u => `<option value="${u.id}">${u.name}</option>`).join('')
+                : `<option value="">Nenhum utilizador</option>`;
+            document.getElementById('modalLogin').style.display = 'flex';
+        };
+
+        document.getElementById('btnOpenCart').onclick = () => {
+            renderCartUI();
+            document.getElementById('modalCart').style.display = 'flex';
+        };
+
+        document.getElementById('searchInput').addEventListener('input', renderClientMenu);
+
+        document.querySelectorAll('.modal-overlay').forEach(m => {
+            m.addEventListener('click', (e) => { if(e.target === m) closeModals(); });
+        });
+    };
+
+    setInterval(() => {
+        if (loggedUser) {
+            const activeTabEl = document.querySelector('.tab.active');
+            if (activeTabEl) activeTab = activeTabEl.dataset.target;
+            loadData();
+        } else {
+            loadData();
+        }
+    }, 30000);
 </script>
 </body>
 </html>
